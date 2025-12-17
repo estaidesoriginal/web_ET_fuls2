@@ -1,0 +1,10 @@
+{  "files.eol": "\n",
+  "files.autoSave": "off",
+  "editor.formatOnSave": false,
+  "editor.trimAutoWhitespace": false,
+  "files.insertFinalNewline": false,
+
+"[javascript]": {
+  "editor.formatOnSave": false
+}
+}
