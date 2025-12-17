@@ -2,9 +2,9 @@
 // 1. CONFIGURACIÓN DE PUERTOS
 // ==========================================
 const API_BASE_URL = {
-  USUARIO: 'http://localhost:8081/api/auth',    // Puerto 8081
-  CATALOGO: 'http://localhost:8080',            // Puerto 8080
-  CARRITO: 'http://localhost:8082/api/carrito'  // Puerto 8082
+  USUARIO: 'https://mi-backend-spring-login.onrender.com',    // Puerto 8081
+  CATALOGO: 'https://mi-backend-spring-catalogo.onrender.com',            // Puerto 8080
+  CARRITO: 'https://mi-backend-spring-carrito.onrender.com'  // Puerto 8082
 };
 
 // ==========================================

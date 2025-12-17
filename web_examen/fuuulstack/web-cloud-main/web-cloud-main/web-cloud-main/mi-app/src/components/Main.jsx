@@ -13,7 +13,7 @@ export default function Main() {
 
   // Este efecto se ejecuta al cargar la página
   useEffect(() => {
-    fetch('http://localhost:8080/productos') // Puerto del Catálogo
+    fetch('https://mi-backend-spring-catalogo.onrender.com/productos') // Puerto del Catálogo
       .then(res => res.json())
       .then(data => {
         setProductos(data); // Guardamos los datos de la API

@@ -62,7 +62,7 @@ export default function Cart({ cart, setCart, user }) {
           cantidad: item.quantity || 1
         }))
       };
-      const response = await fetch('http://localhost:8082/api/carrito/compras', {
+      const response = await fetch('https://mi-backend-spring-carrito.onrender.com/api/carrito/compras', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(compraPayload),

@@ -19,7 +19,7 @@ function Register({ onRegister, onSwitchToLogin }) {
       console.log("Enviando datos al servidor..."); // Para depuración
 
       // Conexión al Backend (Puerto 8081)
-      const response = await fetch('http://localhost:8081/api/auth/register', {
+      const response = await fetch('https://mi-backend-spring-login.onrender.com/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
