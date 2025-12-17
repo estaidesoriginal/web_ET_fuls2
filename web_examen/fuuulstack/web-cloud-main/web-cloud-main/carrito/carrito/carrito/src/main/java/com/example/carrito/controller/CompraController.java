@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
+@CrossOrigin(origins = "*")
+
 @RestController
 @RequestMapping("/api/carrito/compras")
 // 👇 CORRECCIÓN CRÍTICA: Agregamos PATCH, PUT y DELETE a la lista de permitidos
