@@ -13,9 +13,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/carrito/compras")
-// 👇 CORRECCIÓN CRÍTICA: Agregamos PATCH, PUT y DELETE a la lista de permitidos
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"}, 
-             methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.PATCH, RequestMethod.DELETE})
+
 public class CompraController {
 
     private final CompraService compraService;
