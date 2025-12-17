@@ -11,16 +11,7 @@ import reactor.core.publisher.Mono;
 @CrossOrigin(origins = "*")
 
 @RequiredArgsConstructor
-@CrossOrigin(
-    origins = {"http://localhost:3000", "http://localhost:5173"},
-    methods = {
-        RequestMethod.GET,
-        RequestMethod.POST,
-        RequestMethod.PUT,
-        RequestMethod.PATCH,
-        RequestMethod.DELETE
-    }
-)
+
 @RestController
 @RequestMapping("/productos")
 public class ProductoController {
