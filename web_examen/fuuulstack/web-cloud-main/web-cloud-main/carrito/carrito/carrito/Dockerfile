@@ -1,24 +1,24 @@
-# 1. Usamos una imagen base de Java 17 (o la versión que uses) ligera
-FROM openjdk:17-jdk-slim
+# 1. Usamos Eclipse Temurin (la versión estable y moderna de Java 17)
+FROM eclipse-temurin:17-jdk-jammy
 
-# 2. Definimos la carpeta de trabajo dentro del contenedor
 WORKDIR /app
 
-# 3. Copiamos todos los archivos de tu proyecto al contenedor
+# 2. Copiamos los archivos
 COPY . .
 
-# 4. SOLUCIÓN PARA WINDOWS:
-# Le damos permisos de ejecución al mvnw y arreglamos posibles errores de formato de Windows
-RUN chmod +x mvnw
+# 3. FIX PARA WINDOWS (Vital para ti):
+# Instalamos dos2unix para arreglar los saltos de línea del archivo mvnw
+RUN apt-get update && apt-get install -y dos2unix
+RUN dos2unix mvnw
 
-# 5. Construimos la aplicación (saltando los tests para ir más rápido)
+# 4. Damos permisos y construimos
+RUN chmod +x mvnw
 RUN ./mvnw clean package -DskipTests
 
-# 6. Le decimos al contenedor que escuche en el puerto que Render asigne
-# (Render usa la variable PORT automáticamente)
+# 5. Configuración de puertos
 ENV PORT=8082
 EXPOSE 8082
 
-# 7. Comando para iniciar la app
-# Usamos un comodín (*.jar) para no preocuparnos por la versión del nombre del archivo
-CMD ["java", "-jar", "target/carrito-0.0.1-SNAPSHOT.jar"]
+# 6. Comando de arranque
+# Usamos 'sh -c' para que el comodín *.jar funcione correctamente
+CMD ["sh", "-c", "java -jar target/*.jar"]
