@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+@CrossOrigin(origins = "*")
+
 @RequiredArgsConstructor
 @CrossOrigin(
     origins = {"http://localhost:3000", "http://localhost:5173"},
