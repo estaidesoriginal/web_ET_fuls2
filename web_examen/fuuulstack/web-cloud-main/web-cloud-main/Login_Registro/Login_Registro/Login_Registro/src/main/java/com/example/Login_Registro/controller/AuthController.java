@@ -12,8 +12,7 @@ import reactor.core.publisher.Flux;
 
 @RestController
 @RequestMapping("/api/auth")
-// 👇 ESTO ES LA SOLUCIÓN: Permitimos ambas direcciones comunes de React
-@CrossOrigin(origins = {"http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"})
+
 public class AuthController {
 
     private final AuthService authService;
