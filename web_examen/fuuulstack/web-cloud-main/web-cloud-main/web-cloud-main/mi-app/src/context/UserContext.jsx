@@ -3,11 +3,11 @@ import React, { createContext, useState, useEffect } from 'react';
 // 1. Creamos el contexto
 export const UserContext = createContext();
 
-// 2. Creamos el proveedor (el componente que envolverá a toda tu app)
+// 2. Proveedor que envolverá toda la app
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
-  // Al cargar la página, buscamos si hay un usuario guardado en el navegador
+  // Al cargar la página, buscamos si hay un usuario guardado
   useEffect(() => {
     const storedUser = localStorage.getItem('usuario_sesion');
     if (storedUser) {
