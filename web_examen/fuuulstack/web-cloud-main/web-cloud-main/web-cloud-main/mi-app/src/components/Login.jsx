@@ -24,15 +24,16 @@ function Login({ onLogin, onSwitchToRegister }) {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            correo,
-            contrasena: password, // Asegúrate que el backend recibe "contrasena"
-          }),
+          body: JSON.stringify({ correo, contrasena: password }),
         }
       );
-
+      
+      console.log("Status:", response.status);
+      console.log("Ok:", response.ok);
+      
       const data = await response.json();
-      console.log("Respuesta completa del backend:", data);
+      console.log("Respuesta completa:", data);
+
 
       // Ajustar según la estructura real de la respuesta
       // Supongamos que el backend devuelve: { usuario: {...}, token: "..." }
