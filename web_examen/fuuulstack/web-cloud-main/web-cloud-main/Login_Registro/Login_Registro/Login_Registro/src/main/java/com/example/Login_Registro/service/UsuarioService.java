@@ -20,4 +20,8 @@ public class UsuarioService {
     public Usuario guardarUsuario(Usuario usuario) {
         return usuarioRepository.save(usuario);
     }
+    public List<Usuario> obtenerTodos() {
+        return usuarioRepository.findAll();
+    }
+
 }
