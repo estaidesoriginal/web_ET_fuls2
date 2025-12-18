@@ -20,24 +20,28 @@ function Login({ onLogin, onSwitchToRegister }) {
     setLoading(true);
 
     try {
-      const response = await fetch("https://mi-backend-spring-login.onrender.com/api/usuarios/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ correo, password }),
-      });
-
+      const response = await fetch(
+        "https://mi-backend-spring-login.onrender.com/api/usuarios/login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            correo,
+            contrasena: password   // 🔥 CLAVE
+          }),
+        }
+      );
+      
       const data = await response.json();
-      console.log("Respuesta del backend 8081:", data);
-
-      // Si el backend envía mensaje de error
-
-      if (!response.ok || data.message !== "Login exitoso") {
+      console.log("Usuario autenticado:", data);
+      
+      if (!response.ok || !data || !data.id) {
         setErrorMsg("Correo o contraseña incorrectos");
         setLoading(false);
         return;
       }
-
-      // Notificar al App.jsx con todos los datos del usuario
+      
+      // Login OK
       onLogin(data);
 
 
