@@ -63,30 +63,25 @@ function App() {
   const handleLogin = (userData) => {
   console.log("🔐 Respuesta login backend:", userData);
 
-  // Validamos si el login fue realmente exitoso
-  if (!userData || userData.message !== "Login exitoso" || !userData.id) {
+  // Validación correcta
+  if (!userData || !userData.id) {
     showToast("❌ Usuario o contraseña incorrectos");
     return;
   }
 
-  // Transformamos posibles diferencias entre 'correo' y 'email'
   const usuarioNormalizado = {
     id: userData.id,
     nombre: userData.nombre,
-    apellido: userData.apellido,
-    name: `${userData.nombre} ${userData.apellido}`,
-    email: userData.correo || userData.email,
-    correo: userData.correo || userData.email,
+    apellido: userData.apellido || "",
+    name: `${userData.nombre} ${userData.apellido || ""}`,
+    correo: userData.correo,
     rol: userData.rol
   };
 
-  console.log("✅ Usuario autenticado y normalizado:", usuarioNormalizado);
-
-  // Guardamos sesión
   setUser(usuarioNormalizado);
   localStorage.setItem("currentUser", JSON.stringify(usuarioNormalizado));
 
-  // Redirección según rol
+  // Redirección según rol usando currentPage
   if (usuarioNormalizado.rol === "ROLE_ADMIN") {
     setCurrentPage("admin");
     showToast(`👋 Bienvenido Administrador ${usuarioNormalizado.nombre}`);
