@@ -14,7 +14,7 @@ export default function Login({ onLogin }) {
     setError(null);
 
     try {
-      const response = await fetch("http://localhost:10000/api/usuarios/login", {
+      const response = await fetch("https://mi-backend-spring-login.onrender.com/api/usuarios/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
