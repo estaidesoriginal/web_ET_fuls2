@@ -13,11 +13,11 @@ import reactor.core.publisher.Flux;
 @RestController
 @RequestMapping("/api/usuarios")
 
-public class AuthController {
+public class UsuarioController {
 
     private final AuthService authService;
 
-    public AuthController(AuthService authService) {
+    public UsuarioController(AuthService authService) {
         this.authService = authService;
     }
 
