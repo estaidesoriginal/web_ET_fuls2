@@ -188,102 +188,140 @@ function Admin({ onLogout }) {
 
   const renderProducts = () => (
     <div className="admin-section">
-      <h2>Gestión de Productos</h2>
+      <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Gestión de Productos</h2>
 
-      <div className="admin-form-container">
-        <h3>Agregar Nuevo Producto</h3>
-        <form onSubmit={handleAddProduct} className="admin-form">
-          <div style={{display:'flex', gap:'10px'}}>
-            <input
-              type="text"
-              placeholder="Nombre del producto"
-              value={newProduct.name}
-              onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-              required
-              style={{flex: 2}}
-            />
+      {/* --- FORMULARIO DISEÑO TARJETA --- */}
+      <div className="admin-form-container" style={{
+        maxWidth: '800px',
+        margin: '0 auto 40px auto',
+        padding: '30px',
+        background: '#252525',
+        borderRadius: '12px',
+        boxShadow: '0 8px 20px rgba(0,0,0,0.3)',
+        border: '1px solid #333'
+      }}>
+        <h3 style={{ 
+          marginTop: 0, 
+          marginBottom: '20px', 
+          color: '#FFD700', 
+          borderBottom: '1px solid #444', 
+          paddingBottom: '10px' 
+        }}>
+          ✨ Agregar Nuevo Producto
+        </h3>
+
+        <form onSubmit={handleAddProduct} className="admin-form" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          
+          {/* FILA 1: Nombre (ocupa más espacio) y Categoría */}
+          <div style={{ gridColumn: 'span 2', display: 'flex', gap: '20px' }}>
+            <div style={{ flex: 3 }}>
+              <label style={{display:'block', marginBottom:5, fontSize:'0.9rem', color:'#aaa'}}>Nombre del Producto</label>
+              <input
+                type="text"
+                placeholder="Ej: Camiseta Negra"
+                value={newProduct.name}
+                onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                required
+                style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #444', background: '#1a1a1a', color: 'white' }}
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{display:'block', marginBottom:5, fontSize:'0.9rem', color:'#aaa'}}>ID Categ.</label>
+              <input
+                type="number"
+                placeholder="Ej: 1"
+                value={newProduct.categoryId}
+                onChange={(e) => setNewProduct({ ...newProduct, categoryId: e.target.value })}
+                required
+                style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #444', background: '#1a1a1a', color: 'white' }}
+              />
+            </div>
+          </div>
+
+          {/* FILA 2: Precio e Imagen */}
+          <div>
+            <label style={{display:'block', marginBottom:5, fontSize:'0.9rem', color:'#aaa'}}>Precio ($)</label>
             <input
               type="number"
-              placeholder="ID Categ."
-              value={newProduct.categoryId}
-              onChange={(e) => setNewProduct({ ...newProduct, categoryId: e.target.value })}
-              style={{flex: 1}}
+              placeholder="Ej: 15000"
+              value={newProduct.price}
+              onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
               required
+              style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #444', background: '#1a1a1a', color: 'white' }}
             />
           </div>
-          
-          <input
-            type="number"
-            placeholder="Precio"
-            value={newProduct.price}
-            onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
-            required
-          />
-          <input
-            placeholder="Descripción"
-            value={newProduct.description}
-            onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
-            required
-          />
-          <input
-            type="url"
-            placeholder="URL de la imagen"
-            value={newProduct.image}
-            onChange={(e) => setNewProduct({ ...newProduct, image: e.target.value })}
-          />
-          <button type="submit" className="admin-btn-add">+ Agregar Producto</button>
+
+          <div>
+             <label style={{display:'block', marginBottom:5, fontSize:'0.9rem', color:'#aaa'}}>URL Imagen</label>
+            <input
+              type="url"
+              placeholder="https://..."
+              value={newProduct.image}
+              onChange={(e) => setNewProduct({ ...newProduct, image: e.target.value })}
+              style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #444', background: '#1a1a1a', color: 'white' }}
+            />
+          </div>
+
+          {/* FILA 3: Descripción (Ancho completo) */}
+          <div style={{ gridColumn: 'span 2' }}>
+            <label style={{display:'block', marginBottom:5, fontSize:'0.9rem', color:'#aaa'}}>Descripción Detallada</label>
+            <textarea
+              placeholder="Describe el producto..."
+              value={newProduct.description}
+              onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
+              required
+              rows="3"
+              style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #444', background: '#1a1a1a', color: 'white', resize: 'vertical' }}
+            />
+          </div>
+
+          {/* BOTÓN (Ancho completo) */}
+          <div style={{ gridColumn: 'span 2', marginTop: '10px' }}>
+            <button type="submit" className="admin-btn-add" style={{
+              width: '100%',
+              padding: '14px',
+              background: 'linear-gradient(45deg, #FFD700, #FFA500)',
+              border: 'none',
+              borderRadius: '8px',
+              color: '#000',
+              fontWeight: 'bold',
+              fontSize: '1rem',
+              cursor: 'pointer',
+              transition: 'transform 0.2s'
+            }}>
+              + Guardar Producto
+            </button>
+          </div>
         </form>
       </div>
 
+      {/* --- MODAL EDITAR (Sin cambios funcionales, solo visuales ligeros) --- */}
       {editingProduct && (
         <div className="modal-overlay" onClick={() => setEditingProduct(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Editar Producto</h3>
-            <form onSubmit={handleUpdateProduct} className="admin-form">
-              <input
-                type="text"
-                value={editingProduct.name}
-                onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
-                required
-                placeholder="Nombre"
-              />
-              <label style={{fontSize:'12px', fontWeight:'bold'}}>ID Categoría:</label>
-              <input
-                type="number"
-                value={editingProduct.categoryId || ''}
-                onChange={(e) => setEditingProduct({ ...editingProduct, categoryId: e.target.value })}
-                placeholder="Ej: 1"
-                required
-              />
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{maxWidth:'500px', width:'90%'}}>
+            <h3 style={{textAlign:'center', color:'#FFD700'}}>✏️ Editar Producto</h3>
+            <form onSubmit={handleUpdateProduct} className="admin-form" style={{display:'flex', flexDirection:'column', gap:'15px'}}>
+              
+              <input type="text" value={editingProduct.name} onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })} required placeholder="Nombre" style={{padding:10}} />
+              
+              <div style={{display:'flex', gap:10}}>
+                <input type="number" value={editingProduct.categoryId || ''} onChange={(e) => setEditingProduct({ ...editingProduct, categoryId: e.target.value })} placeholder="ID Cat" required style={{flex:1, padding:10}} />
+                <input type="number" value={editingProduct.price} onChange={(e) => setEditingProduct({ ...editingProduct, price: e.target.value })} required placeholder="Precio" style={{flex:1, padding:10}} />
+              </div>
 
-              <label style={{fontSize:'12px', fontWeight:'bold'}}>Precio:</label>
-              <input
-                type="number"
-                value={editingProduct.price}
-                onChange={(e) => setEditingProduct({ ...editingProduct, price: e.target.value })}
-                required
-              />
-              <textarea
-                value={editingProduct.description}
-                onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
-                required
-              />
-              <input
-                type="url"
-                value={editingProduct.image}
-                onChange={(e) => setEditingProduct({ ...editingProduct, image: e.target.value })}
-              />
-              <div className="modal-buttons">
+              <textarea value={editingProduct.description} onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })} required rows={4} style={{padding:10}} />
+              <input type="url" value={editingProduct.image} onChange={(e) => setEditingProduct({ ...editingProduct, image: e.target.value })} placeholder="URL Imagen" style={{padding:10}} />
+              
+              <div className="modal-buttons" style={{marginTop:10}}>
                 <button type="submit" className="admin-btn-save">Guardar Cambios</button>
-                <button type="button" onClick={() => setEditingProduct(null)} className="admin-btn-cancel">
-                  Cancelar
-                </button>
+                <button type="button" onClick={() => setEditingProduct(null)} className="admin-btn-cancel">Cancelar</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
+      {/* --- TABLA PRODUCTOS --- */}
       <div className="admin-table-container">
         <table className="admin-table">
           <thead>
@@ -301,11 +339,11 @@ function Admin({ onLogout }) {
               <tr key={product.id}>
                 <td>{product.id}</td>
                 <td>
-                  <img src={product.image || 'https://via.placeholder.com/50'} alt={product.name} style={{width:'50px', height:'50px', objectFit:'cover'}} />
+                  <img src={product.image || 'https://via.placeholder.com/50'} alt={product.name} style={{width:'50px', height:'50px', objectFit:'cover', borderRadius:'4px'}} />
                 </td>
-                <td>{product.name}</td>
+                <td style={{fontWeight:'500'}}>{product.name}</td>
                 <td>${(product.price || 0).toLocaleString('es-CL')}</td>
-                <td style={{textAlign:'center'}}>{product.categoryId}</td>
+                <td style={{textAlign:'center'}}><span style={{background:'#333', padding:'2px 8px', borderRadius:'4px', fontSize:'0.85rem'}}>{product.categoryId}</span></td>
                 <td>
                   <button onClick={() => setEditingProduct(product)} className="admin-btn-edit">✏️</button>
                   <button onClick={() => handleDeleteProduct(product.id)} className="admin-btn-delete">🗑️</button>
