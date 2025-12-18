@@ -33,26 +33,36 @@ function Admin({ onLogout }) {
   // ==========================================
   
   const loadData = useCallback(async () => {
+    console.log("🔄 Iniciando carga de datos...");
+    
+    // 1. Cargar Productos
     try {
-      // Intentamos cargar productos (Es lo más importante)
       const productsData = await productosAPI.obtenerTodos();
-      setProducts(productsData || []);
-      
-      // Intentamos cargar usuarios y compras por separado para que si fallan
-      // no detengan la carga de productos.
-      try {
-        const usersData = await usuariosAPI.obtenerTodos();
-        setUsuarios(usersData || []);
-      } catch (e) { console.log("Info: API Usuarios no disponible"); }
-
-      try {
-        const comprasData = await comprasAPI.obtenerTodas();
-        setCompras(comprasData || []);
-      } catch (e) { console.log("Info: API Compras no disponible"); }
-
+      console.log("📦 Productos recibidos:", productsData);
+      setProducts(Array.isArray(productsData) ? productsData : []);
     } catch (error) {
-      console.error("Error principal cargando datos:", error);
-      // ⚠️ HE ELIMINADO EL SHOWTOAST DE ERROR AQUÍ PARA QUE NO SALGA EL MENSAJE AMARILLO
+      console.error("❌ Error cargando productos:", error);
+      setProducts([]); // Evita que se rompa la UI
+    }
+
+    // 2. Cargar Usuarios
+    try {
+      const usersData = await usuariosAPI.obtenerTodos();
+      console.log("👥 Usuarios recibidos:", usersData);
+      setUsuarios(Array.isArray(usersData) ? usersData : []);
+    } catch (error) {
+      console.error("❌ Error cargando usuarios:", error);
+      setUsuarios([]); 
+    }
+
+    // 3. Cargar Compras
+    try {
+      const comprasData = await comprasAPI.obtenerTodas();
+      console.log("🛒 Compras recibidas:", comprasData);
+      setCompras(Array.isArray(comprasData) ? comprasData : []);
+    } catch (error) {
+      console.error("❌ Error cargando compras:", error);
+      setCompras([]);
     }
   }, []);
 
@@ -409,81 +419,221 @@ function Admin({ onLogout }) {
 
   const renderUsers = () => (
     <div className="admin-section">
-      <h2>Gestión de Usuarios</h2>
-      <p className="admin-stats">Total: <strong>{usuarios.length}</strong></p>
+      <h2 style={{ textAlign: 'center' }}>Gestión de Usuarios</h2>
+      
+      {/* Mensaje si no hay datos */}
+      {usuarios.length === 0 ? (
+        <div style={{textAlign:'center', padding:'40px', color:'#aaa'}}>
+          <p>⚠️ No se han encontrado usuarios o la conexión falló.</p>
+        </div>
+      ) : (
+        <>
+          <p className="admin-stats" style={{textAlign:'center', marginBottom:20}}>
+            Usuarios Registrados: <strong>{usuarios.length}</strong>
+          </p>
 
-      <div className="admin-table-container">
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nombre</th>
-              <th>Email</th>
-              <th>Rol</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {usuarios.map(user => (
-              <tr key={user.id}>
-                <td>{user.id}</td>
-                <td>{user.name || user.nombre}</td>
-                <td>{user.email || user.correo}</td>
-                <td>
-                  <select
-                    value={user.rol || 'ROLE_USER'}
-                    onChange={(e) => handleChangeRole(user.id, e.target.value)}
-                    className={`role-select role-${user.rol}`}
-                  >
-                    <option value="ROLE_USER">USER</option>
-                    <option value="ROLE_ADMIN">ADMIN</option>
-                  </select>
-                </td>
-                <td>
-                  <button onClick={() => handleDeleteUser(user.id)} className="admin-btn-delete">🗑️</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-
-  const renderReportes = () => (
-    <div className="admin-section">
-      <h2>📊 Reportes</h2>
-      <div className="report-type-selector">
-        <button className={reportType === 'compras' ? 'report-btn active' : 'report-btn'} onClick={() => setReportType('compras')}>🛒 Compras</button>
-      </div>
-      <div className="report-download">
-        <button onClick={downloadExcel} className="download-excel-btn">📥 Descargar Excel (.CSV)</button>
-      </div>
-      {reportType === 'compras' && (
-         <div className="admin-table-container">
-           <table className="admin-table">
-             <thead><tr><th>ID</th><th>Usuario</th><th>Total</th><th>Estado</th><th>Items</th></tr></thead>
-             <tbody>
-               {compras.map(c => (
-                 <tr key={c.id}>
-                   <td>#{c.id}</td>
-                   <td>{c.usuario}</td>
-                   <td>${c.total.toLocaleString('es-CL')}</td>
-                   <td>{c.estado}</td>
-                   <td>{c.items?.length || 0} productos</td>
-                 </tr>
-               ))}
-             </tbody>
-           </table>
-         </div>
+          <div className="admin-table-container">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Email</th>
+                  <th>Rol</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {usuarios.map(user => (
+                  <tr key={user.id}>
+                    <td>{user.id}</td>
+                    <td>{user.name || user.nombre}</td>
+                    <td>{user.email || user.correo}</td>
+                    <td>
+                      <select
+                        value={user.rol || 'ROLE_USER'}
+                        onChange={(e) => handleChangeRole(user.id, e.target.value)}
+                        className={`role-select role-${user.rol}`}
+                        style={{padding:'5px', borderRadius:'4px'}}
+                      >
+                        <option value="ROLE_USER">USER</option>
+                        <option value="ROLE_ADMIN">ADMIN</option>
+                      </select>
+                    </td>
+                    <td>
+                      <button onClick={() => handleDeleteUser(user.id)} className="admin-btn-delete">🗑️</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );
 
+  const renderReportes = () => {
+    // 1. Cálculos de Estadísticas (KPIs)
+    const totalIngresos = compras.reduce((acc, compra) => acc + (compra.total || 0), 0);
+    const totalVentas = compras.length;
+    const totalUsuarios = usuarios.length;
+    const totalProductos = products.length;
+
+    // 2. Función para descargar CSV (Excel simple)
+    const downloadCSV = (data, filename) => {
+      if (!data || data.length === 0) {
+        alert("No hay datos para exportar.");
+        return;
+      }
+      
+      const headers = Object.keys(data[0]).join(",");
+      const rows = data.map(obj => Object.values(obj).map(val => `"${val}"`).join(","));
+      const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join("\n");
+      
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
+    return (
+      <div className="admin-section">
+        <h2 style={{ textAlign: 'center', marginBottom: '30px' }}>📈 Reportes y Estadísticas</h2>
+
+        {/* --- TARJETAS DE ESTADÍSTICAS (KPIs) --- */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gap: '20px',
+          marginBottom: '40px'
+        }}>
+          {/* Card 1: Ingresos */}
+          <div style={{ background: '#252525', padding: '20px', borderRadius: '12px', borderLeft: '5px solid #FFD700', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}>
+            <h4 style={{ margin: 0, color: '#aaa', fontSize: '0.9rem' }}>Ingresos Totales</h4>
+            <p style={{ fontSize: '2rem', fontWeight: 'bold', margin: '10px 0', color: '#fff' }}>
+              ${totalIngresos.toLocaleString('es-CL')}
+            </p>
+            <small style={{ color: '#90EE90' }}>💰 Acumulado histórico</small>
+          </div>
+
+          {/* Card 2: Ventas */}
+          <div style={{ background: '#252525', padding: '20px', borderRadius: '12px', borderLeft: '5px solid #87CEEB', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}>
+            <h4 style={{ margin: 0, color: '#aaa', fontSize: '0.9rem' }}>Ventas Realizadas</h4>
+            <p style={{ fontSize: '2rem', fontWeight: 'bold', margin: '10px 0', color: '#fff' }}>
+              {totalVentas}
+            </p>
+            <small style={{ color: '#87CEEB' }}>🛒 Pedidos totales</small>
+          </div>
+
+          {/* Card 3: Usuarios */}
+          <div style={{ background: '#252525', padding: '20px', borderRadius: '12px', borderLeft: '5px solid #FF69B4', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}>
+            <h4 style={{ margin: 0, color: '#aaa', fontSize: '0.9rem' }}>Usuarios Activos</h4>
+            <p style={{ fontSize: '2rem', fontWeight: 'bold', margin: '10px 0', color: '#fff' }}>
+              {totalUsuarios}
+            </p>
+            <small style={{ color: '#FF69B4' }}>👥 Clientes registrados</small>
+          </div>
+
+          {/* Card 4: Inventario */}
+          <div style={{ background: '#252525', padding: '20px', borderRadius: '12px', borderLeft: '5px solid #FFA500', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}>
+            <h4 style={{ margin: 0, color: '#aaa', fontSize: '0.9rem' }}>Productos en Catálogo</h4>
+            <p style={{ fontSize: '2rem', fontWeight: 'bold', margin: '10px 0', color: '#fff' }}>
+              {totalProductos}
+            </p>
+            <small style={{ color: '#FFA500' }}>📦 Stock disponible</small>
+          </div>
+        </div>
+
+        {/* --- ZONA DE EXPORTACIÓN --- */}
+        <div style={{
+          background: '#1a1a1a',
+          padding: '30px',
+          borderRadius: '12px',
+          border: '1px solid #333'
+        }}>
+          <h3 style={{ marginTop: 0, color: '#FFD700' }}>📂 Exportar Datos</h3>
+          <p style={{ color: '#aaa', marginBottom: '20px' }}>Descarga la información de la base de datos en formato CSV (compatible con Excel).</p>
+          
+          <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+            <button 
+              onClick={() => downloadCSV(compras, 'reporte_ventas.csv')}
+              style={{
+                padding: '12px 20px',
+                background: '#333',
+                color: 'white',
+                border: '1px solid #555',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                transition: 'background 0.3s'
+              }}
+              onMouseOver={(e) => e.target.style.background = '#444'}
+              onMouseOut={(e) => e.target.style.background = '#333'}
+            >
+              📄 Descargar Historial de Ventas
+            </button>
+
+            <button 
+              onClick={() => downloadCSV(usuarios, 'reporte_usuarios.csv')}
+              style={{
+                padding: '12px 20px',
+                background: '#333',
+                color: 'white',
+                border: '1px solid #555',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                transition: 'background 0.3s'
+              }}
+              onMouseOver={(e) => e.target.style.background = '#444'}
+              onMouseOut={(e) => e.target.style.background = '#333'}
+            >
+              👥 Descargar Lista de Usuarios
+            </button>
+
+            <button 
+              onClick={() => downloadCSV(products, 'reporte_inventario.csv')}
+              style={{
+                padding: '12px 20px',
+                background: '#333',
+                color: 'white',
+                border: '1px solid #555',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                transition: 'background 0.3s'
+              }}
+              onMouseOver={(e) => e.target.style.background = '#444'}
+              onMouseOut={(e) => e.target.style.background = '#333'}
+            >
+              📦 Descargar Inventario
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderCompras = () => (
     <div className="admin-section">
-      <h2>Historial de Compras</h2>
-      {compras.length === 0 ? <p className="admin-empty">No hay compras aún (o API en mantenimiento)</p> : (
+      <h2 style={{ textAlign: 'center' }}>Historial de Compras</h2>
+      
+      {compras.length === 0 ? (
+        <div style={{textAlign:'center', padding:'40px', color:'#aaa'}}>
+          <p>📭 No hay compras registradas aún.</p>
+          <small>(Si debería haber compras, revisa la consola F12)</small>
+        </div>
+      ) : (
         <div className="admin-table-container">
           <table className="admin-table">
             <thead>
@@ -504,21 +654,30 @@ function Admin({ onLogout }) {
                   <td>{compra.usuario}</td>
                   <td>
                     {compra.items?.map((item, i) => (
-                      <div key={i} className="compra-item-detail">
-                        {item.cantidad}x {item.producto_nombre}
+                      <div key={i} className="compra-item-detail" style={{fontSize:'0.85rem'}}>
+                        • {item.cantidad}x {item.producto_nombre}
                       </div>
                     ))}
                   </td>
-                  <td className="admin-total">${compra.total.toLocaleString('es-CL')}</td>
-                  <td>{new Date(compra.fecha).toLocaleDateString()}</td>
-                  <td><span className={`estado-badge estado-${compra.estado}`}>{compra.estado}</span></td>
+                  <td className="admin-total" style={{fontWeight:'bold'}}>${(compra.total || 0).toLocaleString('es-CL')}</td>
+                  <td>{compra.fecha ? new Date(compra.fecha).toLocaleDateString() : '-'}</td>
+                  <td>
+                    <span className={`estado-badge estado-${compra.estado}`} style={{
+                      padding:'4px 8px', borderRadius:'12px', fontSize:'0.8rem', fontWeight:'bold',
+                      background: compra.estado === 'ENTREGADO' ? '#90EE90' : compra.estado === 'CANCELADO' ? '#ffcccb' : '#fffacd',
+                      color: '#333'
+                    }}>
+                      {compra.estado}
+                    </span>
+                  </td>
                   <td>
                     <select
-                      value=""
+                      defaultValue=""
                       onChange={(e) => handleStatusChange(compra.id, e.target.value)}
                       className="action-select"
+                      style={{padding:'5px'}}
                     >
-                      <option value="" disabled>ESTADO</option>
+                      <option value="" disabled>Cambiar Estado...</option>
                       <option value="PENDIENTE">Pendiente</option>
                       <option value="ENTREGADO">Entregado</option>
                       <option value="CANCELADO">Cancelado</option>
