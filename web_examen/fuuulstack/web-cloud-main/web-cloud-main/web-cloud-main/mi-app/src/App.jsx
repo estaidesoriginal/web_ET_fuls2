@@ -44,15 +44,7 @@ function App() {
       }
 
       // 3. Recuperar sesión si existe
-      const savedUser = localStorage.getItem('currentUser');
-      if (savedUser) {
-        try {
-          const parsedUser = JSON.parse(savedUser);
-          setUser(parsedUser);
-        } catch (err) {
-          localStorage.removeItem('currentUser');
-        }
-      }
+      
     };
 
     loadInitialData();
@@ -66,7 +58,6 @@ function App() {
   const handleLogin = (userData) => {
   console.log("🔐 Respuesta login backend:", userData);
 
-  // Validación correcta
   if (!userData || !userData.id) {
     showToast("❌ Usuario o contraseña incorrectos");
     return;
@@ -81,10 +72,9 @@ function App() {
     rol: userData.rol
   };
 
-  setUser(usuarioNormalizado);
-  localStorage.setItem("currentUser", JSON.stringify(usuarioNormalizado));
+  login(usuarioNormalizado); // ✅ Usamos la función del contexto
 
-  // Redirección según rol usando currentPage
+  // Redirección según rol
   if (usuarioNormalizado.rol === "ROLE_ADMIN") {
     setCurrentPage("admin");
     showToast(`👋 Bienvenido Administrador ${usuarioNormalizado.nombre}`);
@@ -101,12 +91,12 @@ function App() {
   };
 
   const handleLogout = () => {
-    setUser(null);
-    localStorage.removeItem('currentUser');
-    setCart([]);
-    setCurrentPage('home');
-    showToast('Has cerrado sesión correctamente');
-  };
+  logout(); // ✅ Función del contexto
+  setCart([]);
+  setCurrentPage('home');
+  showToast('Has cerrado sesión correctamente');
+};
+
 
   // ==============================================
   // LÓGICA DEL CARRITO (CORREGIDA)
