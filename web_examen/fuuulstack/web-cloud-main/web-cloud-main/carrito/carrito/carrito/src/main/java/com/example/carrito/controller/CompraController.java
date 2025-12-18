@@ -12,7 +12,7 @@ import java.util.*;
 @CrossOrigin(originPatterns = "*", allowedHeaders = "*", allowCredentials = "true")
 
 @RestController
-@RequestMapping("/api/carrito/compras")
+@RequestMapping("/api/compras")
 
 public class CompraController {
 
