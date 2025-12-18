@@ -228,7 +228,7 @@ function Admin({ onLogout }) {
               <label style={{display:'block', marginBottom:5, fontSize:'0.9rem', color:'#aaa'}}>Nombre del Producto</label>
               <input
                 type="text"
-                placeholder="Ej: Camiseta Negra"
+                placeholder="Ej: Perfume del corxea"
                 value={newProduct.name}
                 onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
                 required
