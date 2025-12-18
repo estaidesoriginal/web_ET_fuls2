@@ -18,7 +18,15 @@ public class UsuarioService {
     }
 
     public Usuario login(String correo, String contrasena) {
-        return usuarioRepository.findByCorreoAndContrasena(correo, contrasena);
+
+        Usuario usuario = usuarioRepository.findByCorreo(correo)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        if (!usuario.getContrasena().equals(contrasena)) {
+            throw new RuntimeException("Contraseña incorrecta");
+        }
+
+        return usuario;
     }
 
     public Usuario guardarUsuario(Usuario usuario) {
