@@ -1,4 +1,4 @@
-package com.example.Login_Registro.config;
+package com.example.Login_Registro.config; 
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,8 +18,9 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/**").permitAll() // 👈 ¡DÉJALOS PASAR!
-                .anyRequest().authenticated()
+                // 👇 ESTA LÍNEA ABRE TODO. SI ESTO FALLA, EL PROBLEMA NO ES SEGURIDAD
+                .requestMatchers("/**").permitAll() 
+                .anyRequest().permitAll()
             );
         return http.build();
     }
@@ -27,10 +28,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("https://perfumeria-sahur-web-com.onrender.com", "http://localhost:5173"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedOrigins(Arrays.asList("*")); // Permitir todo temporalmente
+        configuration.setAllowedMethods(Arrays.asList("*"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(true);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
