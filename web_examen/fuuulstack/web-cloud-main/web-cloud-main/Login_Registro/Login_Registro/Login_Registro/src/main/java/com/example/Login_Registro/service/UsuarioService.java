@@ -1,5 +1,6 @@
 package com.example.Login_Registro.service;
 
+import java.util.List;
 import com.example.Login_Registro.model.Usuario;
 import com.example.Login_Registro.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
