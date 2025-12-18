@@ -3,13 +3,13 @@
 // ==========================================
 const API_BASE_URL = {
   // Microservicio de Usuarios (Login/Registro)
-  USUARIO: 'https://mi-backend-spring-login.onrender.com',
+  USUARIO: 'https://mi-backend-spring-login.onrender.com/api',
   
   // Microservicio de Catálogo (Productos)
-  CATALOGO: 'https://mi-backend-spring-catalogo.onrender.com',
+  CATALOGO: 'https://mi-backend-spring-catalogo.onrender.com/api',
   
   // Microservicio de Carrito (Compras)
-  CARRITO: 'https://mi-backend-spring-carrito.onrender.com'
+  CARRITO: 'https://mi-backend-spring-carrito.onrender.com/api'
 };
 
 // ==========================================
