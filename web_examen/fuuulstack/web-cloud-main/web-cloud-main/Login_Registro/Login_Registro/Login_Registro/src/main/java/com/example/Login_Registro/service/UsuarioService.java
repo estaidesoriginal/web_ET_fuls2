@@ -12,7 +12,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class AuthService {
+public class UsuarioService {
 
     private final WebClient webClient;
     private static final String TABLA = "/rest/v1/usuarios";
