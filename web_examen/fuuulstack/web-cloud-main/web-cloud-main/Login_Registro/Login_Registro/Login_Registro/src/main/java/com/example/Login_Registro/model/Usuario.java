@@ -1,12 +1,15 @@
 package com.example.Login_Registro.model;
 
-// BORRAMOS import lombok.Data;
+import jakarta.persistence.*; // IMPORTANTE: Importar las anotaciones de persistencia
 
-// BORRAMOS @Data
+@Entity // 1. Indica que esto es una Tabla de Base de Datos
+@Table(name = "usuarios") // 2. (Opcional) El nombre real de la tabla en Supabase. Si se llama 'usuario', cámbialo aquí.
 public class Usuario {
     
-    // ELIMINAMOS la anotación @JsonProperty que pusimos antes
+    @Id // 3. Indica que este es el ID (Primary Key)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // 4. Indica que Supabase genera el ID automáticamente (Auto-increment)
     private Integer id; 
+
     private String nombre;
     private String apellido;
     private String correo;
@@ -14,7 +17,7 @@ public class Usuario {
     private String rol;
 
     // ==========================================
-    //   GETTERS Y SETTERS (Manuales)
+    //    GETTERS Y SETTERS (Manuales)
     // ==========================================
 
     public Integer getId() {
