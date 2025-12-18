@@ -18,12 +18,8 @@ function App() {
   const [toast, setToast] = useState({ show: false, text: '' });
   const [apisAvailable, setApisAvailable] = useState({ usuario: false, catalogo: false, carrito: false });
 
-  // 🌟 Usamos UserContext
   const { user, login, logout } = useContext(UserContext);
 
-  // ==============================================
-  // CARGA INICIAL DE DATOS
-  // ==============================================
   useEffect(() => {
     const loadInitialData = async () => {
       const apiStatus = await checkAPIsAvailable();
@@ -31,10 +27,7 @@ function App() {
       
       try {
         const productsData = await productosAPI.obtenerTodos();
-        console.log('Productos cargados desde API:', productsData);
-        if (productsData && productsData.length > 0) {
-          setAllProducts(productsData);
-        }
+        if (productsData && productsData.length > 0) setAllProducts(productsData);
       } catch (error) {
         console.error('Error al cargar productos:', error);
         showToast('⚠️ No se pudo conectar con el Catálogo (8080)');
@@ -43,12 +36,7 @@ function App() {
     loadInitialData();
   }, []);
 
-  // ==============================================
-  // LÓGICA DE AUTENTICACIÓN
-  // ==============================================
   const handleLogin = (userData) => {
-    console.log("🔐 Respuesta login backend:", userData);
-
     if (!userData || !userData.id) {
       showToast("❌ Usuario o contraseña incorrectos");
       return;
@@ -67,10 +55,8 @@ function App() {
 
     if (usuarioNormalizado.rol === "ROLE_ADMIN") {
       setCurrentPage("admin");
-      showToast(`👋 Bienvenido Administrador ${usuarioNormalizado.nombre}`);
     } else {
       setCurrentPage("home");
-      showToast(`👋 Hola ${usuarioNormalizado.nombre}`);
     }
   };
 
@@ -83,12 +69,13 @@ function App() {
     logout();
     setCart([]);
     setCurrentPage('home');
-    showToast('Has cerrado sesión correctamente');
   };
 
-  // ==============================================
-  // LÓGICA DEL CARRITO
-  // ==============================================
+  const showToast = (text) => {
+    setToast({ show: true, text });
+    setTimeout(() => setToast({ show: false, text: '' }), 3000);
+  };
+
   const addToCart = (product) => {
     if (!user) {
       showToast('Debes iniciar sesión para comprar');
@@ -112,85 +99,6 @@ function App() {
     showToast(`${product.name} agregado al carrito`);
   };
 
-  const removeFromCart = (productId) => {
-    setCart(cart.filter(item => item.id !== productId));
-  };
-
-  const updateQuantity = (productId, newQuantity) => {
-    if (newQuantity <= 0) {
-      removeFromCart(productId);
-    } else {
-      setCart(cart.map(item =>
-        item.id === productId ? { ...item, quantity: newQuantity } : item
-      ));
-    }
-  };
-
-  const getTotalPrice = () => cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-  const getTotalItems = () => cart.reduce((total, item) => total + item.quantity, 0);
-
-  const handleCheckout = async () => {
-    if (cart.length === 0) return showToast('El carrito está vacío');
-    if (!user || !user.id) {
-      showToast('Error de sesión. Por favor ingresa nuevamente.');
-      handleLogout();
-      return;
-    }
-
-    try {
-      const nombreFinal = user.nombre || user.name?.split(' ')[0] || "Cliente";
-      const apellidoFinal = user.apellido || (user.name?.split(' ').slice(1).join(' ') || "");
-
-      const compraPayload = {
-        usuarioId: user.id,
-        nombre: nombreFinal,
-        apellido: apellidoFinal,
-        email: user.email || user.correo,
-        direccion: "Dirección Web", 
-        indicaciones: "Compra desde Frontend",
-        total: getTotalPrice(),
-        items: cart.map(item => ({
-          productoId: item.id,
-          productoNombre: item.name,
-          consola: item.console || item.category || "General",
-          precio: item.price,
-          cantidad: item.quantity
-        }))
-      };
-
-      console.log("📦 Enviando compra:", compraPayload);
-
-      const response = await fetch('https://mi-backend-spring-carrito.onrender.com/api/carrito/compras', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(compraPayload),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        showToast(`¡Compra Exitosa! ID de pedido: #${data.compraId || data.id}`);
-        setCart([]);
-        setCurrentPage('home');
-      } else {
-        const errorText = await response.text();
-        console.error("Error Servidor:", errorText);
-        showToast("Hubo un problema al procesar la compra.");
-      }
-
-    } catch (err) {
-      console.error("Error Red:", err);
-      showToast("No se pudo conectar con el servidor de pagos (8082).");
-    }
-  };
-
-  const showToast = (text) => {
-    setToast({ show: true, text });
-    setTimeout(() => setToast({ show: false, text: '' }), 3000);
-  };
-
-  // ==============================================
-  // RENDERIZADO DE PÁGINAS
-  // ==============================================
   const renderPage = () => {
     if (currentPage === 'admin') {
       if (user && user.rol === 'ROLE_ADMIN') {
@@ -253,7 +161,7 @@ function App() {
               )}
               {user ? (
                 <>
-                  {currentPage !== 'admin' && <li><button onClick={() => setCurrentPage('cart')}>🛒 ({getTotalItems()})</button></li>}
+                  {currentPage !== 'admin' && <li><button onClick={() => setCurrentPage('cart')}>🛒</button></li>}
                   <li><button onClick={handleLogout}>Salir ({user.name?.split(' ')[0]})</button></li>
                 </>
               ) : (
