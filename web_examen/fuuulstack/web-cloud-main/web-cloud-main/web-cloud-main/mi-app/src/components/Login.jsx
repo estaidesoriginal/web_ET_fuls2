@@ -9,14 +9,13 @@ function Login({ onLogin, onSwitchToRegister }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validación simple de campos
     if (!correo || !password) {
       setErrorMsg("Debes completar todos los campos.");
       return;
     }
 
     setLoading(true);
-    setErrorMsg(""); // Limpiar mensaje de error previo
+    setErrorMsg("");
 
     try {
       const response = await fetch(
@@ -27,35 +26,28 @@ function Login({ onLogin, onSwitchToRegister }) {
           body: JSON.stringify({ correo, contrasena: password }),
         }
       );
-      
-      console.log("Status:", response.status);
-      console.log("Ok:", response.ok);
-      
+
       const data = await response.json();
-      console.log("Respuesta completa:", data);
+      console.log("Respuesta completa del backend:", data);
 
+      // Validación estricta
+      if (response.ok && data && data.correo) {
+        // Login correcto
+        onLogin(data); // Enviamos todo el objeto usuario al componente padre
 
-      // Ajustar según la estructura real de la respuesta
-      // Supongamos que el backend devuelve: { usuario: {...}, token: "..." }
-      if (!response.ok || !data.usuario) {
+        // Opcional: guardar token o rol si es necesario
+        if (data.rol) localStorage.setItem("rol", data.rol);
+      } else {
+        // Solo mostrar error si realmente falló
         setErrorMsg("Correo o contraseña incorrectos");
-        setLoading(false);
-        return;
-      }
-
-      // Login OK: enviamos el usuario al componente padre
-      onLogin(data.usuario);
-
-      // Opcional: si quieres guardar token en localStorage
-      if (data.token) {
-        localStorage.setItem("token", data.token);
       }
     } catch (error) {
       console.error("Error en login:", error);
       setErrorMsg("No se pudo conectar con el servidor de Login");
+    } finally {
+      // Esto asegura que loading se desactive siempre
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
@@ -112,5 +104,4 @@ function Login({ onLogin, onSwitchToRegister }) {
 }
 
 export default Login;
-
 
