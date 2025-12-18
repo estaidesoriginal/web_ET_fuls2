@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Flux;
 
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*")
 
 @RestController
 @RequestMapping("/api/auth")
