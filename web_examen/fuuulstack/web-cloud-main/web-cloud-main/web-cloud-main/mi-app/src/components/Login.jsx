@@ -1,57 +1,50 @@
-import React, { useState, useContext } from 'react';
-import { UserContext } from '../context/UserContext';
-import { authAPI } from '../lib/apiClient'; // Asegúrate de tener tu función de login API
+import React, { useState } from 'react';
 
-function Login() {
+function Login({ onLogin, onSwitchToRegister }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
-
-  const { login } = useContext(UserContext);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      // Llamada a la API de autenticación
-      const usuario = await authAPI.login({ email, password });
+    setLoading(true);
 
-      // Verifica si el usuario es admin
-      if (usuario.rol !== 'ADMIN') {
-        setError('❌ Solo administradores pueden acceder.');
-        return;
+    try {
+      const response = await fetch('https://mi-backend-spring-login.onrender.com/api/usuarios/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ correo: email, password })
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        onLogin(data); // ✅ Llamamos a la función de App
+      } else {
+        alert(data.message || 'Error al iniciar sesión');
       }
 
-      // Guardamos usuario en el contexto
-      login(usuario);
     } catch (err) {
-      setError('❌ Email o contraseña incorrectos');
-      console.error(err);
+      console.error('Error Login:', err);
+      alert('No se pudo conectar con el servidor');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '10px' }}>
-      <h2 style={{ textAlign: 'center' }}>Login Admin</h2>
-      {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        <input 
-          type="email" 
-          placeholder="Email" 
-          value={email} 
-          onChange={(e) => setEmail(e.target.value)} 
-          required 
-        />
-        <input 
-          type="password" 
-          placeholder="Contraseña" 
-          value={password} 
-          onChange={(e) => setPassword(e.target.value)} 
-          required 
-        />
-        <button type="submit" style={{ padding: '10px', background: '#FFD700', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>
-          Iniciar Sesión
-        </button>
+    <div className="login-page">
+      <h1>Iniciar Sesión</h1>
+      <form onSubmit={handleSubmit}>
+        <label>Email</label>
+        <input type="email" value={email} onChange={e => setEmail(e.target.value)} required />
+
+        <label>Contraseña</label>
+        <input type="password" value={password} onChange={e => setPassword(e.target.value)} required />
+
+        <button type="submit" disabled={loading}>{loading ? 'Ingresando...' : 'Ingresar'}</button>
       </form>
+
+      <p>¿No tienes cuenta? <button onClick={onSwitchToRegister}>Regístrate</button></p>
     </div>
   );
 }
