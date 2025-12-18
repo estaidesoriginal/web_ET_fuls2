@@ -421,58 +421,54 @@ function Admin({ onLogout }) {
     <div className="admin-section">
       <h2 style={{ textAlign: 'center' }}>Gestión de Usuarios</h2>
       
-      {/* Mensaje si no hay datos */}
-      {usuarios.length === 0 ? (
-        <div style={{textAlign:'center', padding:'40px', color:'#aaa'}}>
-          <p>⚠️ No se han encontrado usuarios o la conexión falló.</p>
-        </div>
-      ) : (
-        <>
-          <p className="admin-stats" style={{textAlign:'center', marginBottom:20}}>
-            Usuarios Registrados: <strong>{usuarios.length}</strong>
-          </p>
-
-          <div className="admin-table-container">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Nombre</th>
-                  <th>Email</th>
-                  <th>Rol</th>
-                  <th>Acciones</th>
+      <div className="admin-table-container">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Email</th>
+              <th>Rol</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {/* Si no hay usuarios, muestra una fila vacía avisando */}
+            {usuarios.length === 0 ? (
+              <tr>
+                <td colSpan="5" style={{textAlign:'center', padding:'20px', color:'#aaa'}}>
+                  ⚠️ No hay usuarios cargados (o falló la conexión).
+                </td>
+              </tr>
+            ) : (
+              usuarios.map(user => (
+                <tr key={user.id}>
+                  <td>{user.id}</td>
+                  <td>{user.name || user.nombre || 'Sin nombre'}</td>
+                  <td>{user.email || user.correo || 'Sin email'}</td>
+                  <td>
+                    <select
+                      value={user.rol || 'ROLE_USER'}
+                      onChange={(e) => handleChangeRole(user.id, e.target.value)}
+                      className="role-select"
+                      style={{padding:'5px', borderRadius:'4px', background:'#333', color:'white', border:'1px solid #555'}}
+                    >
+                      <option value="ROLE_USER">USER</option>
+                      <option value="ROLE_ADMIN">ADMIN</option>
+                    </select>
+                  </td>
+                  <td>
+                    <button onClick={() => handleDeleteUser(user.id)} className="admin-btn-delete">🗑️</button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {usuarios.map(user => (
-                  <tr key={user.id}>
-                    <td>{user.id}</td>
-                    <td>{user.name || user.nombre}</td>
-                    <td>{user.email || user.correo}</td>
-                    <td>
-                      <select
-                        value={user.rol || 'ROLE_USER'}
-                        onChange={(e) => handleChangeRole(user.id, e.target.value)}
-                        className={`role-select role-${user.rol}`}
-                        style={{padding:'5px', borderRadius:'4px'}}
-                      >
-                        <option value="ROLE_USER">USER</option>
-                        <option value="ROLE_ADMIN">ADMIN</option>
-                      </select>
-                    </td>
-                    <td>
-                      <button onClick={() => handleDeleteUser(user.id)} className="admin-btn-delete">🗑️</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
-      )}
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
-
+  
   const renderReportes = () => {
     // 1. Cálculos de Estadísticas (KPIs)
     const totalIngresos = compras.reduce((acc, compra) => acc + (compra.total || 0), 0);
@@ -628,67 +624,67 @@ function Admin({ onLogout }) {
     <div className="admin-section">
       <h2 style={{ textAlign: 'center' }}>Historial de Compras</h2>
       
-      {compras.length === 0 ? (
-        <div style={{textAlign:'center', padding:'40px', color:'#aaa'}}>
-          <p>📭 No hay compras registradas aún.</p>
-          <small>(Si debería haber compras, revisa la consola F12)</small>
-        </div>
-      ) : (
-        <div className="admin-table-container">
-          <table className="admin-table">
-            <thead>
+      <div className="admin-table-container">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Cliente</th>
+              <th>Productos</th>
+              <th>Total</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            {compras.length === 0 ? (
               <tr>
-                <th>ID</th>
-                <th>Cliente</th>
-                <th>Productos</th>
-                <th>Total</th>
-                <th>Fecha</th>
-                <th>Estado</th>
-                <th>Actualizar Estado</th>
+                <td colSpan="7" style={{textAlign:'center', padding:'20px', color:'#aaa'}}>
+                  📭 No hay historial de compras disponible.
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {compras.map(compra => (
+            ) : (
+              compras.map(compra => (
                 <tr key={compra.id}>
                   <td>#{compra.id}</td>
-                  <td>{compra.usuario}</td>
+                  <td>{compra.usuarioId || 'Anónimo'}</td>
                   <td>
-                    {compra.items?.map((item, i) => (
-                      <div key={i} className="compra-item-detail" style={{fontSize:'0.85rem'}}>
-                        • {item.cantidad}x {item.producto_nombre}
+                    {/* Verificamos si items es un array antes de mapear */}
+                    {Array.isArray(compra.items) ? compra.items.map((item, i) => (
+                      <div key={i} style={{fontSize:'0.85rem'}}>
+                         • {item.cantidad}x {item.productoNombre || 'Producto'}
                       </div>
-                    ))}
+                    )) : 'Sin detalles'}
                   </td>
-                  <td className="admin-total" style={{fontWeight:'bold'}}>${(compra.total || 0).toLocaleString('es-CL')}</td>
+                  <td style={{fontWeight:'bold'}}>${(compra.total || 0).toLocaleString('es-CL')}</td>
                   <td>{compra.fecha ? new Date(compra.fecha).toLocaleDateString() : '-'}</td>
                   <td>
-                    <span className={`estado-badge estado-${compra.estado}`} style={{
+                    <span style={{
                       padding:'4px 8px', borderRadius:'12px', fontSize:'0.8rem', fontWeight:'bold',
                       background: compra.estado === 'ENTREGADO' ? '#90EE90' : compra.estado === 'CANCELADO' ? '#ffcccb' : '#fffacd',
                       color: '#333'
                     }}>
-                      {compra.estado}
+                      {compra.estado || 'PENDIENTE'}
                     </span>
                   </td>
                   <td>
                     <select
-                      defaultValue=""
+                      value={compra.estado || 'PENDIENTE'}
                       onChange={(e) => handleStatusChange(compra.id, e.target.value)}
-                      className="action-select"
-                      style={{padding:'5px'}}
+                      style={{padding:'5px', borderRadius:'4px', background:'#333', color:'white'}}
                     >
-                      <option value="" disabled>Cambiar Estado...</option>
                       <option value="PENDIENTE">Pendiente</option>
                       <option value="ENTREGADO">Entregado</option>
                       <option value="CANCELADO">Cancelado</option>
                     </select>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 
