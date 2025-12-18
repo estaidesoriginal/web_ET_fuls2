@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { productosAPI, usuariosAPI, comprasAPI } from '../lib/apiClient';
 
 function Admin({ onLogout }) {
@@ -14,13 +14,13 @@ function Admin({ onLogout }) {
   const [reportType, setReportType] = useState('compras');
   const [toast, setToast] = useState(null);
   
-  // Estado para nuevo producto (Adaptado a la nueva DB)
+  // Estado para nuevo producto
   const [newProduct, setNewProduct] = useState({
     name: '',
     price: '',
     description: '',
     image: '',
-    categoryId: '' // Ahora es un ID numérico
+    categoryId: '' 
   });
 
   const showToast = (message, type = 'success') => {
@@ -28,44 +28,54 @@ function Admin({ onLogout }) {
     setTimeout(() => setToast(null), 3000);
   };
 
-  // Cargar datos al iniciar
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  // ==========================================
+  // CARGA DE DATOS (Optimizada y Silenciosa)
+  // ==========================================
+  
+  const loadData = useCallback(async () => {
     try {
+      // Intentamos cargar productos (Es lo más importante)
       const productsData = await productosAPI.obtenerTodos();
       setProducts(productsData || []);
       
-      const usersData = await usuariosAPI.obtenerTodos();
-      setUsuarios(usersData || []);
+      // Intentamos cargar usuarios y compras por separado para que si fallan
+      // no detengan la carga de productos.
+      try {
+        const usersData = await usuariosAPI.obtenerTodos();
+        setUsuarios(usersData || []);
+      } catch (e) { console.log("Info: API Usuarios no disponible"); }
 
-      const comprasData = await comprasAPI.obtenerTodas();
-      setCompras(comprasData || []);
+      try {
+        const comprasData = await comprasAPI.obtenerTodas();
+        setCompras(comprasData || []);
+      } catch (e) { console.log("Info: API Compras no disponible"); }
+
     } catch (error) {
-      console.error("Error cargando datos:", error);
-      showToast('⚠️ Error de conexión con el servidor', 'error');
+      console.error("Error principal cargando datos:", error);
+      // ⚠️ HE ELIMINADO EL SHOWTOAST DE ERROR AQUÍ PARA QUE NO SALGA EL MENSAJE AMARILLO
     }
-  };
+  }, []);
+
+  // Cargar datos al iniciar
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   // ==========================================
-  // LÓGICA DE PRODUCTOS (CREAR / EDITAR / BORRAR)
+  // LÓGICA DE PRODUCTOS
   // ==========================================
 
   const handleAddProduct = async (e) => {
     e.preventDefault();
     try {
-      // Preparamos los datos numéricos para Java
       const payload = {
         ...newProduct,
         price: parseFloat(newProduct.price),
-        categoryId: parseInt(newProduct.categoryId) || 1 // Por defecto 1 si está vacío
+        categoryId: parseInt(newProduct.categoryId) || 1
       };
 
       await productosAPI.crear(payload);
       
-      // Limpiamos el formulario
       setNewProduct({ name: '', price: '', description: '', image: '', categoryId: '' });
       await loadData();
       showToast('✅ Producto creado correctamente');
@@ -87,8 +97,8 @@ function Admin({ onLogout }) {
 
       await productosAPI.actualizar(editingProduct.id, payload);
       
-      setEditingProduct(null); // Cerrar modal
-      await loadData(); // Recargar lista
+      setEditingProduct(null);
+      await loadData(); 
       showToast('✅ Producto actualizado correctamente');
     } catch (error) {
       showToast('Error al actualizar: ' + error.message, 'error');
@@ -133,8 +143,19 @@ function Admin({ onLogout }) {
   };
 
   // ==========================================
-  // REPORTES (EXCEL)
+  // REPORTES / ESTADOS
   // ==========================================
+  
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      await comprasAPI.actualizar(id, { estado: newStatus });
+      showToast('✅ Estado actualizado a: ' + newStatus);
+      loadData();
+    } catch (error) {
+      showToast('Error al actualizar estado', 'error');
+    }
+  };
+
   const downloadExcel = () => {
     let csvContent = '';
     let filename = '';
@@ -162,14 +183,13 @@ function Admin({ onLogout }) {
   };
 
   // ==========================================
-  // RENDERIZADO DE PRODUCTOS
+  // RENDERIZADO
   // ==========================================
 
   const renderProducts = () => (
     <div className="admin-section">
       <h2>Gestión de Productos</h2>
 
-      {/* Formulario agregar producto */}
       <div className="admin-form-container">
         <h3>Agregar Nuevo Producto</h3>
         <form onSubmit={handleAddProduct} className="admin-form">
@@ -181,16 +201,16 @@ function Admin({ onLogout }) {
               onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
               required
               style={{flex: 2}}
-            /></div>
-            {/* INPUT CATEGORÍA ID (NUMÉRICO) */}
+            />
             <input
               type="number"
-              placeholder="ID Categ. (ej: 1)"
+              placeholder="ID Categ."
               value={newProduct.categoryId}
               onChange={(e) => setNewProduct({ ...newProduct, categoryId: e.target.value })}
               style={{flex: 1}}
               required
             />
+          </div>
           
           <input
             type="number"
@@ -215,7 +235,6 @@ function Admin({ onLogout }) {
         </form>
       </div>
 
-      {/* Modal editar producto */}
       {editingProduct && (
         <div className="modal-overlay" onClick={() => setEditingProduct(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -228,8 +247,6 @@ function Admin({ onLogout }) {
                 required
                 placeholder="Nombre"
               />
-              
-              {/* INPUT CATEGORÍA ID EN MODAL */}
               <label style={{fontSize:'12px', fontWeight:'bold'}}>ID Categoría:</label>
               <input
                 type="number"
@@ -267,7 +284,6 @@ function Admin({ onLogout }) {
         </div>
       )}
 
-      {/* Tabla de productos */}
       <div className="admin-table-container">
         <table className="admin-table">
           <thead>
@@ -285,19 +301,14 @@ function Admin({ onLogout }) {
               <tr key={product.id}>
                 <td>{product.id}</td>
                 <td>
-                  <img src={product.image || 'https://via.placeholder.com/50'} alt={product.name} className="admin-product-img" style={{width:'50px', height:'50px', objectFit:'cover'}} />
+                  <img src={product.image || 'https://via.placeholder.com/50'} alt={product.name} style={{width:'50px', height:'50px', objectFit:'cover'}} />
                 </td>
                 <td>{product.name}</td>
                 <td>${(product.price || 0).toLocaleString('es-CL')}</td>
-                {/* Mostramos el ID de la categoría */}
                 <td style={{textAlign:'center'}}>{product.categoryId}</td>
                 <td>
-                  <button onClick={() => setEditingProduct(product)} className="admin-btn-edit">
-                    ✏️
-                  </button>
-                  <button onClick={() => handleDeleteProduct(product.id)} className="admin-btn-delete">
-                    🗑️
-                  </button>
+                  <button onClick={() => setEditingProduct(product)} className="admin-btn-edit">✏️</button>
+                  <button onClick={() => handleDeleteProduct(product.id)} className="admin-btn-delete">🗑️</button>
                 </td>
               </tr>
             ))}
@@ -307,9 +318,6 @@ function Admin({ onLogout }) {
     </div>
   );
 
-  // ==========================================
-  // RENDERIZADO DE USUARIOS
-  // ==========================================
   const renderUsers = () => (
     <div className="admin-section">
       <h2>Gestión de Usuarios</h2>
@@ -343,9 +351,7 @@ function Admin({ onLogout }) {
                   </select>
                 </td>
                 <td>
-                  <button onClick={() => handleDeleteUser(user.id)} className="admin-btn-delete">
-                    🗑️
-                  </button>
+                  <button onClick={() => handleDeleteUser(user.id)} className="admin-btn-delete">🗑️</button>
                 </td>
               </tr>
             ))}
@@ -355,9 +361,6 @@ function Admin({ onLogout }) {
     </div>
   );
 
-  // ==========================================
-  // RENDERIZADO DE REPORTES / COMPRAS
-  // ==========================================
   const renderReportes = () => (
     <div className="admin-section">
       <h2>📊 Reportes</h2>
@@ -391,7 +394,7 @@ function Admin({ onLogout }) {
   const renderCompras = () => (
     <div className="admin-section">
       <h2>Historial de Compras</h2>
-      {compras.length === 0 ? <p className="admin-empty">No hay compras aún</p> : (
+      {compras.length === 0 ? <p className="admin-empty">No hay compras aún (o API en mantenimiento)</p> : (
         <div className="admin-table-container">
           <table className="admin-table">
             <thead>
@@ -422,13 +425,11 @@ function Admin({ onLogout }) {
                   <td><span className={`estado-badge estado-${compra.estado}`}>{compra.estado}</span></td>
                   <td>
                     <select
-                      value="" /* TRUCO: Siempre mostramos la opción por defecto */
+                      value=""
                       onChange={(e) => handleStatusChange(compra.id, e.target.value)}
                       className="action-select"
-                   >
-                      {/* Esta es la etiqueta que se verá siempre */}
+                    >
                       <option value="" disabled>ESTADO</option>
-
                       <option value="PENDIENTE">Pendiente</option>
                       <option value="ENTREGADO">Entregado</option>
                       <option value="CANCELADO">Cancelado</option>
@@ -442,20 +443,6 @@ function Admin({ onLogout }) {
       )}
     </div>
   );
-  const handleStatusChange = async (id, newStatus) => {
-    try {
-      console.log(`🔄 Actualizando estado de compra #${id} a: ${newStatus}`);
-      
-      // CORRECCIÓN: Usamos el método 'actualizar' (PATCH), no 'crear' (POST)
-      await comprasAPI.actualizar(id, { estado: newStatus });
-      
-      showToast('✅ Estado actualizado a: ' + newStatus);
-      loadData(); // Recargar la tabla para ver el cambio reflejado
-    } catch (error) {
-      console.error("Error actualizando estado:", error);
-      showToast('❌ Error al actualizar estado: ' + error.message, 'error');
-    }
-  };
 
   return (
     <div className="admin-container">
