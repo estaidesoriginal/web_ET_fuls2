@@ -1,51 +1,34 @@
-package com.example.Login_Registro.controller;
+package com.example.Login_Registro.controller; // ⚠️ AJUSTA A TU PAQUETE REAL
 
-import com.example.Login_Registro.model.*;
-import com.example.Login_Registro.service.AuthService;
-
-import org.springframework.http.ResponseEntity;
+import com.example.Login_Registro.model.Usuario; // ⚠️ AJUSTA A TU PAQUETE REAL
+import com.example.Login_Registro.service.UsuarioService; // ⚠️ AJUSTA A TU PAQUETE REAL
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Mono;
-import reactor.core.publisher.Flux;
-
-@CrossOrigin(originPatterns = "*", allowedHeaders = "*", allowCredentials = "true")
+import java.util.List;
 
 @RestController
-@RequestMapping("/api/usuarios")
-
+@RequestMapping("/api/usuarios") // ✅ Esto coincide con tu Frontend
+@CrossOrigin(origins = "*")      // ✅ Permite acceso desde cualquier lado (para probar)
 public class UsuarioController {
 
-    private final AuthService authService;
+    @Autowired
+    private UsuarioService usuarioService;
 
-    public UsuarioController(AuthService authService) {
-        this.authService = authService;
+    // GET: Para la tabla de Admin
+    @GetMapping
+    public List<Usuario> obtenerTodos() {
+        return usuarioService.obtenerTodos();
     }
 
-    @PostMapping("/register")
-    public Mono<AuthResponse> registrar(@RequestBody RegistroRequest request) {
-        return authService.registrar(request);
-    }
-
+    // POST: Para Login (Tu frontend llama a /api/usuarios/login)
     @PostMapping("/login")
-    public Mono<ResponseEntity<AuthResponse>> login(@RequestBody LoginRequest request) {
-        return authService.login(request)
-                .map(ResponseEntity::ok)
-                .onErrorResume(err ->
-                        Mono.just(ResponseEntity.status(401)
-                                .body(new AuthResponse(err.getMessage(), null, null, null, null, null)))
-                );
-    }
-
-
-    // ... (Mantén el resto de tus métodos igual: listarUsuarios, etc.)
-    @GetMapping("/usuarios")
-    public Flux<Usuario> listarUsuarios(@RequestParam(required = false) String rol) {
-        if (rol != null) return authService.listarUsuariosPorRol(rol);
-        return authService.listarUsuarios();
+    public Usuario login(@RequestBody Usuario usuario) {
+        return usuarioService.login(usuario.getCorreo(), usuario.getContrasena());
     }
     
-    @GetMapping("/usuarios/{id}")
-    public Mono<Usuario> obtenerUsuarioPorId(@PathVariable Integer id) {
-        return authService.obtenerUsuarioPorId(id);
+    // POST: Para Registro
+    @PostMapping("/register")
+    public Usuario registrar(@RequestBody Usuario usuario) {
+        return usuarioService.guardarUsuario(usuario);
     }
 }
