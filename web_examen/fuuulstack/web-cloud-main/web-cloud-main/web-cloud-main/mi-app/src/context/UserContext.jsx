@@ -3,28 +3,30 @@ import React, { createContext, useState, useEffect } from 'react';
 // 1. Creamos el contexto
 export const UserContext = createContext();
 
-// 2. Proveedor que envolverá toda la app
+// 2. Creamos el proveedor
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
-  // Al cargar la página, buscamos si hay un usuario guardado
+  // Recupera sesión del localStorage al iniciar
   useEffect(() => {
-    const storedUser = localStorage.getItem('usuario_sesion');
+    const storedUser = localStorage.getItem('currentUser');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch {
+        localStorage.removeItem('currentUser');
+      }
     }
   }, []);
 
-  // Función para iniciar sesión
   const login = (userData) => {
     setUser(userData);
-    localStorage.setItem('usuario_sesion', JSON.stringify(userData));
+    localStorage.setItem('currentUser', JSON.stringify(userData));
   };
 
-  // Función para cerrar sesión
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('usuario_sesion');
+    localStorage.removeItem('currentUser');
   };
 
   return (
