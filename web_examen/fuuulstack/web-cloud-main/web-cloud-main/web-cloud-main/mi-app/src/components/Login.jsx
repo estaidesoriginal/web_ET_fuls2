@@ -19,7 +19,10 @@ export default function Login({ onLogin }) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+        correo: correo,
+        contrasena: contrasena
+      }),
       });
 
       if (!response.ok) {
