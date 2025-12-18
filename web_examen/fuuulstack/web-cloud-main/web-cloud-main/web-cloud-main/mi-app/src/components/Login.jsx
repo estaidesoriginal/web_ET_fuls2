@@ -35,7 +35,7 @@ function Login({ onLogin, onSwitchToRegister }) {
       const data = await response.json();
       console.log("Usuario autenticado:", data);
       
-      if (!response.ok || !data || !data.id) {
+      if (!response.ok || !data || !data.correo) {
         setErrorMsg("Correo o contraseña incorrectos");
         setLoading(false);
         return;
