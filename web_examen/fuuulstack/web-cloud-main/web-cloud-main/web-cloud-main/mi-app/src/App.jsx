@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
+import { useContext } from 'react';
+import { UserContext } from './context/UserContext';
+
 import ProductCard from './components/ProductCard';
 import CartItem from './components/CartItem';
 import Cart from './components/Cart';
@@ -13,7 +16,7 @@ import { productosAPI, checkAPIsAvailable } from './lib/apiClient';
 function App() {
   const [cart, setCart] = useState([]);
   const [currentPage, setCurrentPage] = useState('home');
-  const [user, setUser] = useState(null);
+  const { user, login, logout } = useContext(UserContext);
   const [authMode, setAuthMode] = useState('login');
   const [allProducts, setAllProducts] = useState([]);
   const [toast, setToast] = useState({ show: false, text: '' });
