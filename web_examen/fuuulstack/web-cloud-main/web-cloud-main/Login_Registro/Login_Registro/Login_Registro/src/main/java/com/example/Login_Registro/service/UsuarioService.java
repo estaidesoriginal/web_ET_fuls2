@@ -24,13 +24,10 @@ public class UsuarioService {
 
     // ✅ ERROR 3 SOLUCIONADO: Cambiamos LoginRequest por String, String
     public Usuario login(String correo, String contrasena) {
-        // Buscamos por correo
-        Usuario usuario = usuarioRepository.findByCorreo(correo);
-        
-        // Verificamos contraseña
-        if (usuario != null && usuario.getContrasena().equals(contrasena)) {
-            return usuario;
+    return usuarioRepository
+        .findByCorreoAndContrasena(correo, contrasena)
+        .orElseThrow(() ->
+            new RuntimeException("Credenciales incorrectas")
+        );
         }
-        return null;
-    }
 }
