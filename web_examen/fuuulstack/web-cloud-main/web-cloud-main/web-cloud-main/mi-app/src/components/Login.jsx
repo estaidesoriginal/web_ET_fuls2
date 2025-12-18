@@ -1,7 +1,5 @@
 import React, { useState } from "react";
 
-
-
 function Login({ onLogin, onSwitchToRegister }) {
   const [correo, setCorreo] = useState("");
   const [password, setPassword] = useState("");
@@ -11,13 +9,14 @@ function Login({ onLogin, onSwitchToRegister }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-
+    // Validación simple de campos
     if (!correo || !password) {
       setErrorMsg("Debes completar todos los campos.");
       return;
     }
 
     setLoading(true);
+    setErrorMsg(""); // Limpiar mensaje de error previo
 
     try {
       const response = await fetch(
@@ -27,27 +26,32 @@ function Login({ onLogin, onSwitchToRegister }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             correo,
-            contrasena: password   // 🔥 CLAVE
+            contrasena: password, // Asegúrate que el backend recibe "contrasena"
           }),
         }
       );
-      
+
       const data = await response.json();
-      console.log("Usuario autenticado:", data);
-      
-      if (!response.ok || !data || !data.correo) {
+      console.log("Respuesta completa del backend:", data);
+
+      // Ajustar según la estructura real de la respuesta
+      // Supongamos que el backend devuelve: { usuario: {...}, token: "..." }
+      if (!response.ok || !data.usuario) {
         setErrorMsg("Correo o contraseña incorrectos");
         setLoading(false);
         return;
       }
-      
-      // Login OK
-      onLogin(data);
 
+      // Login OK: enviamos el usuario al componente padre
+      onLogin(data.usuario);
 
+      // Opcional: si quieres guardar token en localStorage
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+      }
     } catch (error) {
       console.error("Error en login:", error);
-      setErrorMsg("No se pudo conectar con el servidor de Login (8081)");
+      setErrorMsg("No se pudo conectar con el servidor de Login");
     }
 
     setLoading(false);
@@ -76,18 +80,23 @@ function Login({ onLogin, onSwitchToRegister }) {
         <button type="submit" disabled={loading} className="auth-btn">
           {loading ? "Validando..." : "Ingresar"}
         </button>
+
         {errorMsg && (
-          <div style={{
-            background: '#222',
-            color: '#ff4444',
-            border: '2px solid #ff4444',
-            borderRadius: '8px',
-            padding: '10px',
-            marginTop: '10px',
-            textAlign: 'center',
-            fontWeight: 'bold',
-            width: '100%'
-          }}>{errorMsg}</div>
+          <div
+            style={{
+              background: '#222',
+              color: '#ff4444',
+              border: '2px solid #ff4444',
+              borderRadius: '8px',
+              padding: '10px',
+              marginTop: '10px',
+              textAlign: 'center',
+              fontWeight: 'bold',
+              width: '100%',
+            }}
+          >
+            {errorMsg}
+          </div>
         )}
       </form>
 
