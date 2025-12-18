@@ -2,12 +2,15 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
-import { UserProvider } from './context/UserContext'; // ✅ importar contexto
 import reportWebVitals from './reportWebVitals';
+
+// ✅ Importamos UserProvider
+import { UserProvider } from './context/UserContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
+    {/* 🌟 Envolvemos App con UserProvider */}
     <UserProvider>
       <App />
     </UserProvider>
