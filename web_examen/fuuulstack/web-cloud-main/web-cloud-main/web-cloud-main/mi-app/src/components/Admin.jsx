@@ -212,7 +212,7 @@ function Admin({ onLogout }) {
 
         <form onSubmit={handleAddProduct} className="admin-form" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
           
-          {/* FILA 1: Nombre (ocupa más espacio) y Categoría */}
+          {/* FILA 1: Nombre y Categoría */}
           <div style={{ gridColumn: 'span 2', display: 'flex', gap: '20px' }}>
             <div style={{ flex: 3 }}>
               <label style={{display:'block', marginBottom:5, fontSize:'0.9rem', color:'#aaa'}}>Nombre del Producto</label>
@@ -225,16 +225,23 @@ function Admin({ onLogout }) {
                 style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #444', background: '#1a1a1a', color: 'white' }}
               />
             </div>
-            <div style={{ flex: 1 }}>
-              <label style={{display:'block', marginBottom:5, fontSize:'0.9rem', color:'#aaa'}}>ID Categ.</label>
-              <input
-                type="number"
-                placeholder="Ej: 1"
+            
+            {/* SELECTOR DE CATEGORÍA (NUEVO) */}
+            <div style={{ flex: 2 }}>
+              <label style={{display:'block', marginBottom:5, fontSize:'0.9rem', color:'#aaa'}}>Temporada (Categoría)</label>
+              <select
                 value={newProduct.categoryId}
                 onChange={(e) => setNewProduct({ ...newProduct, categoryId: e.target.value })}
                 required
-                style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #444', background: '#1a1a1a', color: 'white' }}
-              />
+                style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #444', background: '#1a1a1a', color: 'white', cursor: 'pointer' }}
+              >
+                <option value="" disabled>Seleccione...</option>
+                <option value="1">☀️ 1 - Verano</option>
+                <option value="2">❄️ 2 - Invierno</option>
+                <option value="3">🌸 3 - Primavera</option>
+                <option value="4">🍂 4 - Otoño</option>
+                <option value="5">🔖 5 - Otro</option>
+              </select>
             </div>
           </div>
 
@@ -262,7 +269,7 @@ function Admin({ onLogout }) {
             />
           </div>
 
-          {/* FILA 3: Descripción (Ancho completo) */}
+          {/* FILA 3: Descripción */}
           <div style={{ gridColumn: 'span 2' }}>
             <label style={{display:'block', marginBottom:5, fontSize:'0.9rem', color:'#aaa'}}>Descripción Detallada</label>
             <textarea
@@ -275,7 +282,7 @@ function Admin({ onLogout }) {
             />
           </div>
 
-          {/* BOTÓN (Ancho completo) */}
+          {/* BOTÓN */}
           <div style={{ gridColumn: 'span 2', marginTop: '10px' }}>
             <button type="submit" className="admin-btn-add" style={{
               width: '100%',
@@ -295,22 +302,51 @@ function Admin({ onLogout }) {
         </form>
       </div>
 
-      {/* --- MODAL EDITAR (Sin cambios funcionales, solo visuales ligeros) --- */}
+      {/* --- MODAL EDITAR (TAMBIÉN ACTUALIZADO CON SELECT) --- */}
       {editingProduct && (
         <div className="modal-overlay" onClick={() => setEditingProduct(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{maxWidth:'500px', width:'90%'}}>
             <h3 style={{textAlign:'center', color:'#FFD700'}}>✏️ Editar Producto</h3>
             <form onSubmit={handleUpdateProduct} className="admin-form" style={{display:'flex', flexDirection:'column', gap:'15px'}}>
               
-              <input type="text" value={editingProduct.name} onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })} required placeholder="Nombre" style={{padding:10}} />
+              <div>
+                <label style={{fontSize:'0.8rem', color:'#888'}}>Nombre</label>
+                <input type="text" value={editingProduct.name} onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })} required style={{padding:10, width:'100%'}} />
+              </div>
               
               <div style={{display:'flex', gap:10}}>
-                <input type="number" value={editingProduct.categoryId || ''} onChange={(e) => setEditingProduct({ ...editingProduct, categoryId: e.target.value })} placeholder="ID Cat" required style={{flex:1, padding:10}} />
-                <input type="number" value={editingProduct.price} onChange={(e) => setEditingProduct({ ...editingProduct, price: e.target.value })} required placeholder="Precio" style={{flex:1, padding:10}} />
+                <div style={{flex:1}}>
+                  <label style={{fontSize:'0.8rem', color:'#888'}}>Categoría</label>
+                  {/* SELECTOR EN MODO EDICIÓN */}
+                  <select
+                    value={editingProduct.categoryId || 1}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, categoryId: e.target.value })}
+                    required
+                    style={{padding:10, width:'100%', background:'#eee', border:'1px solid #ccc', borderRadius:'4px'}}
+                  >
+                    <option value="1">1 - Verano</option>
+                    <option value="2">2 - Invierno</option>
+                    <option value="3">3 - Primavera</option>
+                    <option value="4">4 - Otoño</option>
+                    <option value="5">5 - Otro</option>
+                  </select>
+                </div>
+
+                <div style={{flex:1}}>
+                   <label style={{fontSize:'0.8rem', color:'#888'}}>Precio</label>
+                   <input type="number" value={editingProduct.price} onChange={(e) => setEditingProduct({ ...editingProduct, price: e.target.value })} required style={{padding:10, width:'100%'}} />
+                </div>
               </div>
 
-              <textarea value={editingProduct.description} onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })} required rows={4} style={{padding:10}} />
-              <input type="url" value={editingProduct.image} onChange={(e) => setEditingProduct({ ...editingProduct, image: e.target.value })} placeholder="URL Imagen" style={{padding:10}} />
+              <div>
+                <label style={{fontSize:'0.8rem', color:'#888'}}>Descripción</label>
+                <textarea value={editingProduct.description} onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })} required rows={4} style={{padding:10, width:'100%'}} />
+              </div>
+
+              <div>
+                <label style={{fontSize:'0.8rem', color:'#888'}}>Imagen URL</label>
+                <input type="url" value={editingProduct.image} onChange={(e) => setEditingProduct({ ...editingProduct, image: e.target.value })} style={{padding:10, width:'100%'}} />
+              </div>
               
               <div className="modal-buttons" style={{marginTop:10}}>
                 <button type="submit" className="admin-btn-save">Guardar Cambios</button>
@@ -343,7 +379,22 @@ function Admin({ onLogout }) {
                 </td>
                 <td style={{fontWeight:'500'}}>{product.name}</td>
                 <td>${(product.price || 0).toLocaleString('es-CL')}</td>
-                <td style={{textAlign:'center'}}><span style={{background:'#333', padding:'2px 8px', borderRadius:'4px', fontSize:'0.85rem'}}>{product.categoryId}</span></td>
+                <td style={{textAlign:'center'}}>
+                   {/* PÍLDORA VISUAL PARA LA CATEGORÍA */}
+                   <span style={{
+                     background: product.categoryId == 1 ? '#FFD700' : 
+                                 product.categoryId == 2 ? '#87CEEB' :
+                                 product.categoryId == 3 ? '#90EE90' :
+                                 product.categoryId == 4 ? '#FFA07A' : '#ccc',
+                     color: '#000',
+                     padding: '2px 8px', 
+                     borderRadius: '10px', 
+                     fontSize: '0.8rem',
+                     fontWeight: 'bold'
+                   }}>
+                     {product.categoryId}
+                   </span>
+                </td>
                 <td>
                   <button onClick={() => setEditingProduct(product)} className="admin-btn-edit">✏️</button>
                   <button onClick={() => handleDeleteProduct(product.id)} className="admin-btn-delete">🗑️</button>
