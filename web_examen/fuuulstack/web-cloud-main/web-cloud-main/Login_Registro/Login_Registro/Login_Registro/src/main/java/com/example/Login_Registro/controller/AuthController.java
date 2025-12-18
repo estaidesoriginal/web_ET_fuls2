@@ -11,7 +11,7 @@ import reactor.core.publisher.Flux;
 @CrossOrigin(originPatterns = "*", allowedHeaders = "*", allowCredentials = "true")
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/usuarios")
 
 public class AuthController {
 
