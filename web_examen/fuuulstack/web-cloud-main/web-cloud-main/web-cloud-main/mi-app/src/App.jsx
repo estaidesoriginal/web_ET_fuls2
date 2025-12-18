@@ -1,37 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import './App.css';
 
-import { useContext } from 'react';
-import { UserContext } from './context/UserContext';
-
 import ProductCard from './components/ProductCard';
-import CartItem from './components/CartItem';
 import Cart from './components/Cart';
 import Login from './components/Login';
 import Register from './components/Register';
 import Admin from './components/Admin';
 import Home from './components/Home';
 import { productosAPI, checkAPIsAvailable } from './lib/apiClient';
+import { UserContext } from './context/UserContext';
 
 function App() {
   const [cart, setCart] = useState([]);
   const [currentPage, setCurrentPage] = useState('home');
-  const { user, login, logout } = useContext(UserContext);
   const [authMode, setAuthMode] = useState('login');
   const [allProducts, setAllProducts] = useState([]);
   const [toast, setToast] = useState({ show: false, text: '' });
   const [apisAvailable, setApisAvailable] = useState({ usuario: false, catalogo: false, carrito: false });
+
+  // 🌟 Usamos UserContext
+  const { user, login, logout } = useContext(UserContext);
 
   // ==============================================
   // CARGA INICIAL DE DATOS
   // ==============================================
   useEffect(() => {
     const loadInitialData = async () => {
-      // 1. Verificar disponibilidad de APIs
       const apiStatus = await checkAPIsAvailable();
       setApisAvailable(apiStatus);
       
-      // 2. Cargar productos desde la API (Puerto 8080)
       try {
         const productsData = await productosAPI.obtenerTodos();
         console.log('Productos cargados desde API:', productsData);
@@ -42,66 +39,56 @@ function App() {
         console.error('Error al cargar productos:', error);
         showToast('⚠️ No se pudo conectar con el Catálogo (8080)');
       }
-
-      // 3. Recuperar sesión si existe
-      
     };
-
     loadInitialData();
   }, []);
 
   // ==============================================
-  // LÓGICA DE AUTENTICACIÓN (CORREGIDA)
+  // LÓGICA DE AUTENTICACIÓN
   // ==============================================
-  
-  // Esta función ahora solo recibe el usuario, porque Login.jsx ya hizo la validación con Java
   const handleLogin = (userData) => {
-  console.log("🔐 Respuesta login backend:", userData);
+    console.log("🔐 Respuesta login backend:", userData);
 
-  if (!userData || !userData.id) {
-    showToast("❌ Usuario o contraseña incorrectos");
-    return;
-  }
+    if (!userData || !userData.id) {
+      showToast("❌ Usuario o contraseña incorrectos");
+      return;
+    }
 
-  const usuarioNormalizado = {
-    id: userData.id,
-    nombre: userData.nombre,
-    apellido: userData.apellido || "",
-    name: `${userData.nombre} ${userData.apellido || ""}`,
-    correo: userData.correo,
-    rol: userData.rol
+    const usuarioNormalizado = {
+      id: userData.id,
+      nombre: userData.nombre,
+      apellido: userData.apellido || "",
+      name: `${userData.nombre} ${userData.apellido || ""}`,
+      correo: userData.correo,
+      rol: userData.rol
+    };
+
+    login(usuarioNormalizado);
+
+    if (usuarioNormalizado.rol === "ROLE_ADMIN") {
+      setCurrentPage("admin");
+      showToast(`👋 Bienvenido Administrador ${usuarioNormalizado.nombre}`);
+    } else {
+      setCurrentPage("home");
+      showToast(`👋 Hola ${usuarioNormalizado.nombre}`);
+    }
   };
 
-  login(usuarioNormalizado); // ✅ Usamos la función del contexto
-
-  // Redirección según rol
-  if (usuarioNormalizado.rol === "ROLE_ADMIN") {
-    setCurrentPage("admin");
-    showToast(`👋 Bienvenido Administrador ${usuarioNormalizado.nombre}`);
-  } else {
-    setCurrentPage("home");
-    showToast(`👋 Hola ${usuarioNormalizado.nombre}`);
-  }
-};
-
-  // Esta función solo cambia la vista, porque Register.jsx maneja la API internamente
   const handleRegister = () => {
     setAuthMode('login');
     showToast('Cuenta creada. Por favor inicia sesión.');
   };
 
   const handleLogout = () => {
-  logout(); // ✅ Función del contexto
-  setCart([]);
-  setCurrentPage('home');
-  showToast('Has cerrado sesión correctamente');
-};
-
+    logout();
+    setCart([]);
+    setCurrentPage('home');
+    showToast('Has cerrado sesión correctamente');
+  };
 
   // ==============================================
-  // LÓGICA DEL CARRITO (CORREGIDA)
+  // LÓGICA DEL CARRITO
   // ==============================================
-
   const addToCart = (product) => {
     if (!user) {
       showToast('Debes iniciar sesión para comprar');
@@ -139,18 +126,11 @@ function App() {
     }
   };
 
-  const getTotalPrice = () => {
-    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-  };
+  const getTotalPrice = () => cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+  const getTotalItems = () => cart.reduce((total, item) => total + item.quantity, 0);
 
-  const getTotalItems = () => {
-    return cart.reduce((total, item) => total + item.quantity, 0);
-  };
-
-  // --- AQUÍ ESTÁ LA CORRECCIÓN CLAVE PARA LA COMPRA ---
   const handleCheckout = async () => {
     if (cart.length === 0) return showToast('El carrito está vacío');
-    
     if (!user || !user.id) {
       showToast('Error de sesión. Por favor ingresa nuevamente.');
       handleLogout();
@@ -158,18 +138,9 @@ function App() {
     }
 
     try {
-      // 1. Preparamos el nombre completo
-      let nombreFinal = user.name || user.nombre || "Cliente";
-      let apellidoFinal = user.apellido || "";
-      
-      // Si el nombre viene junto, lo separamos para Java
-      if (user.name && !user.apellido) {
-        const parts = user.name.split(' ');
-        nombreFinal = parts[0];
-        apellidoFinal = parts.slice(1).join(' ') || "";
-      }
+      const nombreFinal = user.nombre || user.name?.split(' ')[0] || "Cliente";
+      const apellidoFinal = user.apellido || (user.name?.split(' ').slice(1).join(' ') || "");
 
-      // 2. Construimos el paquete EXACTO para tu API Java (Puerto 8082)
       const compraPayload = {
         usuarioId: user.id,
         nombre: nombreFinal,
@@ -178,7 +149,6 @@ function App() {
         direccion: "Dirección Web", 
         indicaciones: "Compra desde Frontend",
         total: getTotalPrice(),
-        // Enviamos la lista de items correctamente mapeada
         items: cart.map(item => ({
           productoId: item.id,
           productoNombre: item.name,
@@ -190,7 +160,6 @@ function App() {
 
       console.log("📦 Enviando compra:", compraPayload);
 
-      // 3. Petición al servidor
       const response = await fetch('https://mi-backend-spring-carrito.onrender.com/api/carrito/compras', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -220,22 +189,13 @@ function App() {
   };
 
   // ==============================================
-  // NAVEGACIÓN Y RENDERIZADO
+  // RENDERIZADO DE PÁGINAS
   // ==============================================
-
   const renderPage = () => {
-    // 🛡️ PROTECCIÓN DE RUTA ADMIN
     if (currentPage === 'admin') {
       if (user && user.rol === 'ROLE_ADMIN') {
-        return (
-          <Admin 
-            onLogout={handleLogout} 
-            // Pasamos funciones para que el Admin pueda actualizar la lista global si es necesario
-            onProductsChange={(newProducts) => setAllProducts(newProducts)}
-          />
-        );
+        return <Admin onLogout={handleLogout} onProductsChange={setAllProducts} />;
       } else {
-        // Si intenta entrar y no es admin, lo mandamos al home
         return (
           <div className="access-denied">
             <h2>⛔ Acceso Denegado</h2>
@@ -246,7 +206,6 @@ function App() {
       }
     }
 
-    // Rutas Públicas / Usuario
     if (!user && (currentPage === 'login' || currentPage === 'register')) {
       return authMode === 'login' 
         ? <Login onLogin={handleLogin} onSwitchToRegister={() => setAuthMode('register')} />
@@ -255,54 +214,13 @@ function App() {
 
     switch(currentPage) {
       case 'home':
-        return (
-          <>
-            <Home products={allProducts} onAddToCart={addToCart} />
-            <footer className="site-footer product-footer">
-              <div className="footer-content">
-                <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
-                  <span style={{color:'#FFD700',fontWeight:'bold'}}>© 2025 Perfumería Sahur</span>
-                  <span style={{color:'#fff'}}>Encuéntranos en redes sociales:</span>
-                  <div style={{display:'flex',gap:12}}>
-                    <a href="#" style={{color:'#FFD700'}}>Instagram</a>
-                    <a href="#" style={{color:'#FFD700'}}>Facebook</a>
-                    <a href="#" style={{color:'#FFD700'}}>Twitter</a>
-                  </div>
-                  <span style={{color:'#bbb',fontSize:'13px'}}>Av. Aromas 1234, Santiago, Chile</span>
-                </div>
-              </div>
-            </footer>
-          </>
-        );
-      
+        return <Home products={allProducts} onAddToCart={addToCart} />;
       case 'products':
         return (
-          <>
-            <div>
-              <h1>Nuestros Productos</h1>
-              <div className="grid-container">
-                {allProducts.map(p => (
-                  <ProductCard key={p.id} product={p} onAddToCart={addToCart} />
-                ))}
-              </div>
-            </div>
-            <footer className="site-footer product-footer">
-              <div className="footer-content">
-                <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
-                  <span style={{color:'#FFD700',fontWeight:'bold'}}>© 2025 Perfumería Sahur</span>
-                  <span style={{color:'#fff'}}>Encuéntranos en redes sociales:</span>
-                  <div style={{display:'flex',gap:12}}>
-                    <a href="#" style={{color:'#FFD700'}}>Instagram</a>
-                    <a href="#" style={{color:'#FFD700'}}>Facebook</a>
-                    <a href="#" style={{color:'#FFD700'}}>Twitter</a>
-                  </div>
-                  <span style={{color:'#bbb',fontSize:'13px'}}>Av. Aromas 1234, Santiago, Chile</span>
-                </div>
-              </div>
-            </footer>
-          </>
+          <div className="grid-container">
+            {allProducts.map(p => <ProductCard key={p.id} product={p} onAddToCart={addToCart} />)}
+          </div>
         );
-
       case 'cart':
         if (!user) return (
           <div className="empty-cart-page">
@@ -310,97 +228,9 @@ function App() {
             <button onClick={() => { setAuthMode('login'); setCurrentPage('login'); }}>Ir al Login</button>
           </div>
         );
-        return (
-          <>
-            <div className="cart-page">
-              <h1>🛒 Tu Carrito</h1>
-              <Cart cart={cart} setCart={setCart} user={user} />
-            </div>
-            <footer className="site-footer product-footer">
-              <div className="footer-content">
-                <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
-                  <span style={{color:'#FFD700',fontWeight:'bold'}}>© 2025 Perfumería Sahur</span>
-                  <span style={{color:'#fff'}}>Encuéntranos en redes sociales:</span>
-                  <div style={{display:'flex',gap:12}}>
-                    <a href="#" style={{color:'#FFD700'}}>Instagram</a>
-                    <a href="#" style={{color:'#FFD700'}}>Facebook</a>
-                    <a href="#" style={{color:'#FFD700'}}>Twitter</a>
-                  </div>
-                  <span style={{color:'#bbb',fontSize:'13px'}}>Av. Aromas 1234, Santiago, Chile</span>
-                </div>
-              </div>
-            </footer>
-          </>
-        );
-
+        return <Cart cart={cart} setCart={setCart} user={user} />;
       case 'contact':
-        return (
-          <>
-            <div className="contact-page">
-              <h1>Contáctanos</h1>
-              <div className="contact-info">
-                <div className="contact-item">
-                  <h3>Dirección</h3>
-                  <p>Av. Aromas 1234, Torre Perfume, Santiago, Chile</p>
-                </div>
-                <div className="contact-item">
-                  <h3>Teléfonos</h3>
-                  <p>+56 2 2345 6789</p>
-                  <p>+56 9 8765 4321</p>
-                </div>
-                <div className="contact-item">
-                  <h3>Email</h3>
-                  <p>contacto@perfumeriasahur.cl</p>
-                  <p>ventas@perfumeriasahur.cl</p>
-                </div>
-                <div className="contact-item">
-                  <h3>Redes Sociales</h3>
-                  <p>
-                    <a href="#" style={{color:'#FFD700'}}>Instagram</a> | 
-                    <a href="#" style={{color:'#FFD700'}}>Facebook</a> | 
-                    <a href="#" style={{color:'#FFD700'}}>Twitter</a>
-                  </p>
-                </div>
-              </div>
-              <div className="business-hours">
-                <h3>Horario de Atención</h3>
-                <p>Lunes a Viernes: 10:00 - 19:00</p>
-                <p>Sábados: 11:00 - 16:00</p>
-                <p>Domingos y festivos: Cerrado</p>
-              </div>
-              <div className="about-contact" style={{marginTop:40, background:'#181818', borderRadius:10, padding:24, color:'#FFD700'}}>
-                <h2>Nuestra Historia</h2>
-                <p>Perfumería Sahur es líder en fragancias de lujo en Chile desde 1998. Nos especializamos en perfumes originales, asesoría personalizada y experiencias olfativas únicas para cada cliente.</p>
-                <h3>Nuestros Valores</h3>
-                <ul style={{color:'#fff'}}>
-                  <li>Calidad y autenticidad en cada fragancia</li>
-                  <li>Atención personalizada y profesional</li>
-                  <li>Pasión por el arte del perfume</li>
-                  <li>Compromiso con la satisfacción del cliente</li>
-                </ul>
-              </div>
-              <div className="map-section" style={{marginTop:40,textAlign:'center'}}>
-                <h3>Encuéntranos aquí</h3>
-                <iframe title="mapa" src="https://www.openstreetmap.org/export/embed.html?bbox=-70.6483%2C-33.4569%2C-70.6483%2C-33.4569&amp;layer=mapnik" style={{width:'100%',maxWidth:500,height:250,border:'2px solid #FFD700',borderRadius:8}} allowFullScreen="" loading="lazy"></iframe>
-              </div>
-            </div>
-            <footer className="site-footer product-footer">
-              <div className="footer-content">
-                <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
-                  <span style={{color:'#FFD700',fontWeight:'bold'}}>© 2025 Perfumería Sahur</span>
-                  <span style={{color:'#fff'}}>Encuéntranos en redes sociales:</span>
-                  <div style={{display:'flex',gap:12}}>
-                    <a href="#" style={{color:'#FFD700'}}>Instagram</a>
-                    <a href="#" style={{color:'#FFD700'}}>Facebook</a>
-                    <a href="#" style={{color:'#FFD700'}}>Twitter</a>
-                  </div>
-                  <span style={{color:'#bbb',fontSize:'13px'}}>Av. Aromas 1234, Santiago, Chile</span>
-                </div>
-              </div>
-            </footer>
-          </>
-        );
-
+        return <div>Sección de contacto...</div>;
       default:
         return <Home products={allProducts} onAddToCart={addToCart} />;
     }
@@ -408,16 +238,6 @@ function App() {
 
   return (
     <div className="App">
-      {/* Notificación de Error de APIs
-      {(!apisAvailable.catalogo || !apisAvailable.usuario || !apisAvailable.carrito) && (
-        <div className="api-warning-banner">
-          ⚠️ Algunas conexiones fallaron: 
-          {!apisAvailable.usuario && ' [Login 8081]'}
-          {!apisAvailable.catalogo && ' [Catálogo 8080]'}
-          {!apisAvailable.carrito && ' [Carrito 8082]'}
-        </div>
-      )} */}
-
       <header>
         <div className="header-content">
           <div className="logo-container" onClick={() => setCurrentPage('home')}>
@@ -428,18 +248,12 @@ function App() {
               <li><button onClick={() => setCurrentPage('home')}>Inicio</button></li>
               <li><button onClick={() => setCurrentPage('products')}>Productos</button></li>
               <li><button onClick={() => setCurrentPage('contact')}>Contacto</button></li>
-              
-              {/* Botón Admin solo si es Admin */}
               {user && user.rol === 'ROLE_ADMIN' && (
                 <li><button onClick={() => setCurrentPage('admin')} style={{color: '#FFD700'}}>🛠️ Admin</button></li>
               )}
-
               {user ? (
                 <>
-                  {/* Oculta el carrito solo en la vista admin */}
-                  {currentPage !== 'admin' && (
-                    <li><button onClick={() => setCurrentPage('cart')}>🛒 ({getTotalItems()})</button></li>
-                  )}
+                  {currentPage !== 'admin' && <li><button onClick={() => setCurrentPage('cart')}>🛒 ({getTotalItems()})</button></li>}
                   <li><button onClick={handleLogout}>Salir ({user.name?.split(' ')[0]})</button></li>
                 </>
               ) : (
@@ -450,9 +264,7 @@ function App() {
         </div>
       </header>
 
-      <main>
-        {renderPage()}
-      </main>
+      <main>{renderPage()}</main>
 
       {toast.show && <div className="toast">{toast.text}</div>}
 
