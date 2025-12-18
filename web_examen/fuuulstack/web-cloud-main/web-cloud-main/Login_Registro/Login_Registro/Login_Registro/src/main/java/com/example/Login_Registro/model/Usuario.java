@@ -3,7 +3,7 @@ package com.example.Login_Registro.model;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "usuarios")
+@Table(name = "usuarios", schema = "public")
 public class Usuario {
 
     @Id
@@ -11,6 +11,7 @@ public class Usuario {
     private Long id;
 
     private String nombre;
+    private String apellido;
     private String correo;
     private String contrasena;
     private String rol;
@@ -57,3 +58,4 @@ public class Usuario {
         this.rol = rol;
     }
 }
+
