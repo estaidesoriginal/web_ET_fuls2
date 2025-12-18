@@ -1,21 +1,26 @@
 // ==========================================
-// 1. CONFIGURACIÓN DE PUERTOS
+// 1. CONFIGURACIÓN DE URLS (ENTORNO CLOUD - RENDER)
 // ==========================================
 const API_BASE_URL = {
-  USUARIO: 'https://mi-backend-spring-login.onrender.com',    // Puerto 8081
-  CATALOGO: 'https://mi-backend-spring-catalogo.onrender.com',            // Puerto 8080
-  CARRITO: 'https://mi-backend-spring-carrito.onrender.com'  // Puerto 8082
+  // Microservicio de Usuarios (Login/Registro)
+  USUARIO: 'https://mi-backend-spring-login.onrender.com',
+  
+  // Microservicio de Catálogo (Productos)
+  CATALOGO: 'https://mi-backend-spring-catalogo.onrender.com',
+  
+  // Microservicio de Carrito (Compras)
+  CARRITO: 'https://mi-backend-spring-carrito.onrender.com'
 };
 
 // ==========================================
 // 2. MAPEOS (TRADUCTORES DB <-> FRONTEND)
 // ==========================================
 
-// PRODUCTOS: La DB ahora está en INGLÉS (name, price, description)
+// PRODUCTOS: La DB está en INGLÉS (name, price, description)
 // Pero tiene una llave foránea 'categoria_id'.
 const mapProductoToFrontend = (p) => ({
   id: p.id,
-  name: p.name,               
+  name: p.name,                
   description: p.description,
   price: p.price,
   image: p.image,
@@ -37,8 +42,8 @@ const mapProductoToBackend = (p) => ({
 // COMPRAS: La DB sigue en ESPAÑOL (nombre, total, estado)
 const mapCompraToFrontend = (c) => ({
   id: c.id,
-  // Unimos nombre y apellido para mostrar "Cliente"
-  usuario: c.nombre ? `${c.nombre} ${c.apellido}` : 'Cliente',
+  // Unimos nombre y apellido para mostrar "Cliente" si existen, si no, genérico
+  usuario: c.nombre ? `${c.nombre} ${c.apellido}` : (c.usuarioId || 'Cliente'),
   total: c.total,
   fecha: c.fecha,
   estado: c.estado,
@@ -46,7 +51,7 @@ const mapCompraToFrontend = (c) => ({
 });
 
 // ==========================================
-// 3. VERIFICADOR DE ESTADO
+// 3. VERIFICADOR DE ESTADO (Health Check)
 // ==========================================
 export const checkAPIsAvailable = async () => {
   const checks = await Promise.allSettled([
@@ -63,7 +68,7 @@ export const checkAPIsAvailable = async () => {
 };
 
 // ==========================================
-// 4. API DE USUARIOS (Puerto 8081)
+// 4. API DE USUARIOS (Login Service)
 // ==========================================
 export const usuariosAPI = {
   obtenerTodos: () => 
@@ -74,9 +79,9 @@ export const usuariosAPI = {
     fetch(`${API_BASE_URL.USUARIO}/usuarios/${id}`)
       .then(r => r.json()),
 
-  // Endpoint de búsqueda o filtro
+  // Endpoint de búsqueda o filtro manual
   obtenerPorEmail: (email) => 
-    fetch(`${API_BASE_URL.USUARIO}/usuarios`) // Traemos todos y filtramos si no hay endpoint específico
+    fetch(`${API_BASE_URL.USUARIO}/usuarios`) // Traemos todos y filtramos
       .then(r => r.json())
       .then(users => users.find(u => u.correo === email || u.email === email)),
 
@@ -88,15 +93,14 @@ export const usuariosAPI = {
     }).then(r => r.json()),
 
   login: (email, password) =>
-  fetch(`${API_BASE_URL.USUARIO}/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ 
-      correo: email, 
-      contrasena: password 
-    })
-  }).then(r => r.json()),
-
+    fetch(`${API_BASE_URL.USUARIO}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        correo: email, 
+        contrasena: password 
+      })
+    }).then(r => r.json()),
 
   actualizar: (id, usuario) =>
     fetch(`${API_BASE_URL.USUARIO}/usuarios/${id}`, {
@@ -110,7 +114,7 @@ export const usuariosAPI = {
 };
 
 // ==========================================
-// 5. API DE PRODUCTOS (Puerto 8080)
+// 5. API DE PRODUCTOS (Catalogo Service)
 // ==========================================
 export const productosAPI = {
   obtenerTodos: () => 
@@ -134,7 +138,7 @@ export const productosAPI = {
     }),
 
   actualizar: (id, prod) => 
-    fetch(`${API_BASE_URL.CATALOGO}/productos/${id}`, { // <--- DEBE DECIR CATALOGO (8080)
+    fetch(`${API_BASE_URL.CATALOGO}/productos/${id}`, { 
       method: 'PATCH', 
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(mapProductoToBackend(prod))
@@ -148,7 +152,7 @@ export const productosAPI = {
 };
 
 // ==========================================
-// 6. API DE COMPRAS (Puerto 8082)
+// 6. API DE COMPRAS (Carrito Service)
 // ==========================================
 export const comprasAPI = {
   obtenerTodas: () => 
@@ -170,10 +174,9 @@ export const comprasAPI = {
         return res.json();
     }),
 
-  // 👇 AQUÍ ESTABA EL FALTANTE PARA EL BOTÓN DE ESTADO 👇
   actualizar: (id, datos) => 
     fetch(`${API_BASE_URL.CARRITO}/compras/${id}`, {
-      method: 'PATCH', // Usamos PATCH para cambios pequeños (estado)
+      method: 'PATCH', // Usamos PATCH para cambios de estado
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(datos)
     }).then(async res => {
@@ -185,10 +188,10 @@ export const comprasAPI = {
     fetch(`${API_BASE_URL.CARRITO}/compras/${id}`, { method: 'DELETE' })
 };
 
-// Alias para compatibilidad
+// Alias para compatibilidad con código antiguo
 export const carritoAPI = comprasAPI;
 
-// Export por defecto para importaciones sin llaves
+// Export por defecto
 export default {
   usuariosAPI,
   productosAPI,
