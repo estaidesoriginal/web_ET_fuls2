@@ -1,4 +1,4 @@
-package com.example.Login_Registro.config;
+package com.example.catalogo.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
