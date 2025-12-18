@@ -20,7 +20,7 @@ function Login({ onLogin, onSwitchToRegister }) {
     setLoading(true);
 
     try {
-      const response = await fetch("https://mi-backend-spring-login.onrender.com/api/auth/login", {
+      const response = await fetch("https://mi-backend-spring-login.onrender.com//api/usuarios/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, password }),
