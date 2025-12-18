@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
-@CrossOrigin(originPatterns = "*")
+@CrossOrigin(originPatterns = "*", allowedHeaders = "*", allowCredentials = "true")
 
 @RestController
 @RequestMapping("/api/carrito/compras")
